@@ -1,5 +1,4 @@
 from logging import getLogger
-from xml.etree.ElementTree import fromstring
 from .exceptions import RealexError, RealexServerError
 from .utils import HttpUtils, ResponseUtils
 
@@ -33,7 +32,7 @@ class RealexClient(object):
         logger.info('Response XML from server: %s' % response_xml)
 
         logger.debug('Unmarshalling XML to response object.')
-        response = request.response_from_xml(fromstring(response_xml))
+        response = request.response_from_xml(response_xml)
 
         if ResponseUtils.is_basic_response(response.result):
             logger.error('Error response received from Realex with code %s and message %s.' %

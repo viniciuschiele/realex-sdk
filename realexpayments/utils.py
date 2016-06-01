@@ -19,7 +19,7 @@ class GenerationUtils(object):
 
     @staticmethod
     def generate_timestamp():
-        return datetime.now().strftime('yyyyMMddHHmmss')
+        return datetime.now().strftime('%Y%m%d%H%M%S')
 
     @staticmethod
     def generate_order_id():
@@ -33,7 +33,7 @@ class HttpUtils(object):
     def send(url, xml, timeout, only_allow_https, proxies):
         # Confirm protocol is HTTPS (ie. secure) if such is configured
         if only_allow_https:
-            if not url.lower().starstwith(HttpUtils.HTTPS_PROTOCOL):
+            if not url.lower().startswith(HttpUtils.HTTPS_PROTOCOL):
                 logger.error('Protocol must be ' + HttpUtils.HTTPS_PROTOCOL)
                 raise RealexError('Protocol must be ' + HttpUtils.HTTPS_PROTOCOL)
         else:
@@ -67,7 +67,7 @@ class ResponseUtils(object):
         result code and message from the response.
 
         A full response indicates the request could be processed and the response object will return fully populated.
-
+Add triggers for provisioninggit+https://github.com/viniciuschiele/realex-client
         Please note, full responses may still contain errors e.g. Bank errors (1xx). The result code should be
         checked for success. For example a full response with a result code of 101 will not throw an exception and will return
         a fully populated response object.

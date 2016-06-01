@@ -327,11 +327,11 @@ class PaymentResponse(Response):
         if element is not None:
             response.card_issuer = CardIssuer.from_xml_element(element)
 
-        element = element.find('sha1hash')
+        element = root.find('sha1hash')
         if element is not None:
             response.sha1hash = element.text
 
-        element = element.find('md5hash')
+        element = root.find('md5hash')
         if element is not None:
             response.md5hash = element.text
 
@@ -390,6 +390,11 @@ class ThreeDSecure(object):
             threedsecure.algorithm = sub_element.text
 
         return threedsecure
+
+
+class ThreeDSecureType(object):
+    verify_enrolled = '3ds-verifyenrolled'
+    verify_sig = '3ds-verifysig'
 
 
 class ThreeDSecureRequest(Request):
