@@ -26,7 +26,7 @@ class RealexClient(object):
         # log the request
         logger.info('Request XML to server: %s' % request_xml)
 
-        response_xml = HttpUtils.send(url, request_xml, self.timeout, self.only_allow_https, self.proxies)
+        response_xml = HttpUtils.send_message(url, request_xml, self.timeout, self.only_allow_https, self.proxies)
 
         # log the response
         logger.info('Response XML from server: %s' % response_xml)

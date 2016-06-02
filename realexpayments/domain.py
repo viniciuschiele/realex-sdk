@@ -3,6 +3,13 @@ from .utils import GenerationUtils
 
 
 class Address(object):
+    """
+    The Address of the customer.
+
+    :param str type: The address type. Can be shipping or billing.
+    :param str code: The ZIP|Postal code of the address. This can be checked against a table of high-risk area codes.
+    :param str country: The country of the address. This can be checked against a table of high-risk countries.
+    """
     def __init__(self, type=None, code=None, country=None):
         self.type = type
         self.code = code
@@ -20,12 +27,22 @@ class Address(object):
 
 
 class AddressType(object):
+    """
+    Enumeration representing the address type.
+    """
     none = ''
     shipping = 'shipping'
     billing = 'billing'
 
 
 class Amount(object):
+    """
+    Class representing the Amount in a Realex request.
+
+    :param str currency: The type of currency, e.g. GBP (Sterling) or EUR (Euro)
+    :param str amount: The amount should be in the smallest unit of the required currency
+        (For example: 2000=20 euro, dollar or pounds).
+    """
     def __init__(self, currency=None, amount=None):
         self.currency = currency
         self.amount = amount
@@ -37,6 +54,14 @@ class Amount(object):
 
 
 class AutoSettle(object):
+    """
+    Class representing the AutoSettle flag in a Realex request. If set to true (1),
+    then the transaction will be included in today's settlement file. If set to false (0), then the
+    transaction will be authorised but not settled. Merchants must manually settle delayed
+    transactions within 28 days of authorisation.
+
+    :param str flag: The AutoSettle flag value.
+    """
     def __init__(self, flag=None):
         self.flag = flag
 
@@ -46,13 +71,27 @@ class AutoSettle(object):
 
 
 class AutoSettleFlag(object):
+    """
+    Enumeration representing the auto settle flag (true (1), false (0) or multi-settle (MULTI)).
+    """
     true = '1'
     false = '0'
-    multi = 'multi'
+    multi = 'MULTI'
 
 
 class Card(object):
-    def __init__(self, type=None, number=None, card_holder_name=None, expiry_date=None, issue_number=None, cvn=None):
+    """
+    Represents the card which is required in AUTH requests.
+
+    :param str type: The card type used in the transaction.
+    :param str number: The card number used for the transaction.
+    :param str card_holder_name: The card holder's name.
+    :param str expiry_date: The card expiry date, in the format MMYY, which must be a date in the future.
+    :param int issue_number: The card issue number.
+    :param Cvn cvn: The card verification number.
+    """
+    def __init__(self, type=None, number=None, card_holder_name=None,
+                 expiry_date=None, issue_number=None, cvn=None):
         self.type = type
         self.number = number
         self.card_holder_name = card_holder_name
@@ -76,13 +115,16 @@ class Card(object):
         sub_element.text = self.card_holder_name
 
         sub_element = SubElement(element, 'issueno')
-        sub_element.text = self.issue_number
+        sub_element.text = str(self.issue_number)
 
         if self.cvn:
             self.cvn.to_xml_element(element)
 
 
 class CardType(object):
+    """
+    Enumeration representing the card type.
+    """
     visa = 'VISA'
     mastercard = 'MC'
     amex = 'AMEX'
@@ -92,6 +134,14 @@ class CardType(object):
 
 
 class Cvn(object):
+    """
+    Class representing the card verification details.
+
+    :param str number: A three-digit number on the reverse of the card.
+        It is called the CVC for VISA and the CVV2 for MasterCard.
+        For an AMEX card, it is a four digit number.
+    :param str presence_indicator: The presence indicator.
+    """
     def __init__(self, number=None, presence_indicator=None):
         self.number = number
         self.presence_indicator = presence_indicator
@@ -107,6 +157,9 @@ class Cvn(object):
 
 
 class PresenceIndicator(object):
+    """
+    Enumeration of the possible presence indicator values.
+    """
     present = '1'
     illegible = '2'
     not_on_card = '3'
@@ -114,6 +167,16 @@ class PresenceIndicator(object):
 
 
 class CardIssuer(object):
+    """
+    Class representing details of the card holder's bank (if available).
+
+    :param str bank: The Bank Name (e.g. First Data Bank).
+    :param str country: The Bank Country in English (e.g. UNITED STATES).
+    :param str country_code: The country code of the issuing bank (e.g. US).
+    :param str region: The region the card was issued (e.g. US)
+        Can be MEA (Middle East/Asia), LAT (Latin America), US (United States), EUR (Europe), CAN (Canada),
+        A/P (Asia/Pacific).
+    """
     def __init__(self, bank=None, country=None, country_code=None, region=None):
         self.bank = bank
         self.country = country
@@ -144,6 +207,18 @@ class CardIssuer(object):
 
 
 class Mpi(object):
+    """
+    Domain object representing MPI (realmpi) information to be passed to Realex.
+    RealMPI is Realex's product to implement card scheme-certified payer authentication via the bank
+    and the 3D Secure system (Verified by Visa for Visa, Secure Code for Mastercard and SafeKey for Amex).
+
+    :param str cavv: The CAVV(Visa)/UCAF(Mastercard) if present.
+    :param str xid: The XID.
+    :param str eci: The e-commerce indicator.
+        5 or 2 = Fully secure, card holder enrolled.
+        6 or 1 = Merchant secure, card holder not enrolled or attempt ACS server was used.
+        7 or 0 = Transaction not secure.
+    """
     def __init__(self, cavv=None, xid=None, eci=None):
         self.cavv = cavv
         self.xid = xid
@@ -162,17 +237,32 @@ class Mpi(object):
 
 
 class Comment(object):
+    """
+    Class representing a Comment in a Realex request.
+
+    :param int id: The comment ID (1 or 2)
+    :param str comment: The text comment.
+    """
     def __init__(self, id=None, comment=None):
         self.id = id
         self.comment = comment
 
     def to_xml_element(self, parent):
         element = SubElement(parent, 'comment')
-        element.set('id', self.id)
+        element.set('id', str(self.id))
         element.text = self.comment
 
 
 class Recurring(object):
+    """
+    If you are configured for recurring/continuous authority transactions, you must set the recurring values.
+
+    :param str type: Type can be either fixed or variable depending on whether you will be changing the amounts or not.
+    :param str sequence: The recurring sequence. Must be first for the first transaction for this card,
+        subsequent for transactions after that, and last for the final transaction of the set.
+        Only supported by some acquirers.
+    :param str flag: The recurring flag. Optional field taking values 0, 1 or 2.
+    """
     def __init__(self, type=None, sequence=None, flag=None):
         self.type = type
         self.sequence = sequence
@@ -186,12 +276,20 @@ class Recurring(object):
 
 
 class RecurringType(object):
+    """
+    Enumeration representing the recurring type.
+    """
     none = ''
     variable = 'variable'
     fixed = 'fixed'
 
 
 class RecurringSequence(object):
+    """
+    Enumeration representing the recurring sequence. Must be first for the first transaction for this card,
+    subsequent for transactions after that, and last for the final transaction of the set.
+    Only supported by some acquirers.
+    """
     none = ''
     first = 'first'
     subsequent = 'subsequent'
@@ -199,6 +297,9 @@ class RecurringSequence(object):
 
 
 class RecurringFlag(object):
+    """
+    Enumeration representing the recurring flag.
+    """
     none = ''
     zero = '0'
     one = '1'
@@ -206,6 +307,20 @@ class RecurringFlag(object):
 
 
 class TssInfo(object):
+    """
+    Domain object representing TSS (realscore) information to be passed to Realex.
+    Realscore is a real time transaction screening and data checking system to assist a merchant
+    with the identification of potentially high-risk transactions.
+
+    :param str customer_number: The number you assign to the customer.
+        This can allow checking of previous transactions by this customer.
+    :param str product_id: The product code you assign to the product.
+    :param str variable_reference: Any reference you also would like to assign to the customer.
+        This can allow checking, using realscore, of previous transactions by this customer.
+    :param str customer_ip_address: The IP address of the customer.
+    :param addresses: The addresses of the customer.
+    :type: list of Address
+    """
     def __init__(self, customer_number=None, product_id=None, variable_reference=None,
                  customer_ip_address=None, addresses=None):
         self.customer_number = customer_number
@@ -235,6 +350,14 @@ class TssInfo(object):
 
 
 class TssResult(object):
+    """
+    The results of realscore checks.
+
+    :param str result: The weighted total score of realscore.
+        The weights can be adjusted in the realcontrol application.
+    :param checks: The list of realscore check results.
+    :type: list of TssResultCheck
+    """
     def __init__(self, result=None, checks=None):
         self.result = result
         self.checks = checks
@@ -256,6 +379,12 @@ class TssResult(object):
 
 
 class TssResultCheck(object):
+    """
+    Domain object representing the results of an individual realscore check.
+
+    :param str id: The ID of the realscore check.
+    :param str value: The value of the realscore check.
+    """
     def __init__(self, id=None, value=None):
         self.id = id
         self.value = value
@@ -273,22 +402,50 @@ class TssResultCheck(object):
 
 
 class Request(object):
+    """
+    Base class to be implemented by all classes which represent Realex requests.
+    """
     def generate_defaults(self, secret):
+        """
+        Generates default values for fields such as hash, timestamp and order ID.
+        :param str secret:
+        """
         raise NotImplementedError()
 
     def response_from_xml(self, xml):
+        """
+        Returns a concrete implementation of the response class from an XML source.
+        :param str xml: The XML to be parsed.
+        :return:
+        """
         raise NotImplementedError()
 
     def to_xml(self):
+        """
+        Method returns an XML representation of the interface implementation.
+        :return str: The XML representation.
+        """
         raise NotImplementedError()
 
 
 class Response(object):
+    """
+    Base class to be implemented by all classes which represent Realex responses.
+    """
+
     def is_hash_valid(self, secret):
+        """
+        Validates the hash in the response is correct.
+        :param str secret:
+        :return bool: `True` if valid, `False` if not.
+        """
         raise NotImplementedError()
 
 
 class PaymentType(object):
+    """
+    Enumeration for the payment type.
+    """
     auth = 'auth'
     auth_mobile = 'auth-mobile'
     settle = 'settle'
@@ -301,6 +458,44 @@ class PaymentType(object):
 
 
 class PaymentRequest(Request):
+    """
+    Class representing a Payment request to be sent to Realex.
+
+    :param str timestamp: Format of timestamp is yyyyMMddhhmmss  e.g. 20150131094559 for 31/01/2015 09:45:59.
+        If the timestamp is more than a day (86400 seconds) away from the server time,
+        then the request is rejected.
+    :param str type: The payment type.
+    :param str merchant_id: Represents Realex Payments assigned merchant id.
+    :param str account: Represents the Realex Payments subaccount to use.
+        If this element is omitted, then the default account is used.
+    :param str channel: For certain acquirers it is possible to specify whether a transaction is to be processed
+        as a Mail Order/Telephone Order or Ecommerce transaction.
+        For other banks, this is configured on the Merchant ID level.
+    :param str order_id: Represents the unique order id of this transaction.
+        Must be unique across all of the sub-accounts.
+    :param Amount amount: The `Amount` object containing the amount value and the currency type.
+    :param Card card: The `card` object containing the card details to be passed in request.
+    :param AutoSettle auto_settle: The `AutoSettle` object containing the auto settle flag.
+    :param comments: List of `Comment` objects to be passed in request.
+        Optionally, up to two comments can be associated with any transaction.
+    :type: list of Comment
+    :param str payments_reference: Represents the Realex Payments reference of the original transaction
+        (this is included in the response to the auth).
+    :param str auth_code: Represents the authcode of the original transaction, which was included in the response.
+    :param str mobile: The mobile auth payment type e.g. apple-pay.
+    :param str token: The mobile auth payment token to be sent in place of payment data.
+    :param Mpi mpi: Contains 3D Secure/Secure Code information if this transaction has used
+        a 3D Secure/Secure Code system, either Realex's RealMPI or a third party's.
+    :param str fraud_filter: Fraud filter flag
+    :param Recurring recurring: If you are configured for recurring/continuous authority transactions,
+        you must set the recurring values.
+    :param TssInfo tss_info: TSS Info contains optional variables which can be used to identify
+        customers in the Realex Payments system.
+    :param str refund_hash: Represents a hash of the refund password, which Realex Payments will provide.
+        The SHA1 algorithm must be used to generate this hash.
+    :param str sha1_hash: Hash constructed from the time stamp, merchand ID, order ID, amount, currency,
+        card number and secret values.
+    """
     def __init__(self, **kwargs):
         self.timestamp = kwargs.get('timestamp')
         self.type = kwargs.get('type')
@@ -313,8 +508,8 @@ class PaymentRequest(Request):
         self.card = kwargs.get('card')
         self.auto_settle = kwargs.get('auto_settle')
         self.comments = kwargs.get('comments')
-        self.auth_code = kwargs.get('authcode')
         self.payments_reference = kwargs.get('payments_reference')
+        self.auth_code = kwargs.get('authcode')
         self.mobile = kwargs.get('mobile')
         self.token = kwargs.get('token')
         self.mpi = kwargs.get('mpi')
@@ -322,21 +517,26 @@ class PaymentRequest(Request):
         self.recurring = kwargs.get('recurring')
         self.tss_info = kwargs.get('tss_info')
         self.refund_hash = kwargs.get('refund_hash')
-        self.sha1hash = kwargs.get('sha1hash')
+        self.sha1_hash = kwargs.get('sha1_hash')
 
     def generate_defaults(self, secret):
+        """
+        Generates default values for fields such as hash, timestamp and order ID.
+        :param str secret:
+        """
         if self.timestamp is None:
             self.timestamp = GenerationUtils.generate_timestamp()
 
         if self.order_id is None:
             self.order_id = GenerationUtils.generate_order_id()
 
-        if self.sha1hash is None:
+        if self.sha1_hash is None:
             self.generate_hash(secret)
 
     def generate_hash(self, secret):
         """
         Create the security hash from a number of fields and the shared secret.
+        :param str secret:
         """
         timestamp = self.timestamp or ''
         merchant_id = self.merchant_id or ''
@@ -360,35 +560,44 @@ class PaymentRequest(Request):
         else:
             to_hash = '.'.join((timestamp, merchant_id, order_id, amount, currency, card_number))
 
-        self.sha1hash = GenerationUtils.generate_hash(to_hash, secret)
+        self.sha1_hash = GenerationUtils.generate_hash(to_hash, secret)
 
     def response_from_xml(self, xml):
+        """
+        Returns a concrete implementation of the response class from an XML source.
+        :param str xml: The xml to be parsed.
+        :return PaymentResponse: A instance of `PaymentResponse`.
+        """
         return PaymentResponse.from_xml(xml)
 
     def to_xml(self):
+        """
+        Returns an XML representation of the interface implementation.
+        :return str: The XML representation.
+        """
         root = Element('request')
         root.set('timestamp', self.timestamp)
         root.set('type', self.type)
 
-        if self.merchant_id:
+        if self.merchant_id is not None:
             element = SubElement(root, 'merchantid')
             element.text = self.merchant_id
 
-        if self.channel:
+        if self.channel is not None:
             element = SubElement(root, 'channel')
             element.text = self.channel
 
-        if self.order_id:
+        if self.order_id is not None:
             element = SubElement(root, 'orderid')
             element.text = self.order_id
 
-        if self.amount:
+        if self.amount is not None:
             self.amount.to_xml_element(root)
 
-        if self.card:
+        if self.card is not None:
             self.card.to_xml_element(root)
 
-        if self.auto_settle:
+        if self.auto_settle is not None:
             self.auto_settle.to_xml_element(root)
 
         if self.comments:
@@ -396,54 +605,83 @@ class PaymentRequest(Request):
             for comment in self.comments:
                 comment.to_xml_element(element)
 
-        if self.auth_code:
+        if self.auth_code is not None:
             element = SubElement(root, 'auth_code')
             element.text = self.auth_code
 
-        if self.payments_reference:
+        if self.payments_reference is not None:
             element = SubElement(root, 'pasref')
             element.text = self.payments_reference
 
-        if self.mobile:
+        if self.mobile is not None:
             element = SubElement(root, 'mobile')
             element.text = self.mobile
 
-        if self.token:
+        if self.token is not None:
             element = SubElement(root, 'token')
             element.text = self.token
 
-        if self.mpi:
+        if self.mpi is not None:
             self.mpi.to_xml_element(root)
 
-        if self.fraud_filter:
+        if self.fraud_filter is not None:
             element = SubElement(root, 'fraudfilter')
             element.text = self.fraud_filter
 
-        if self.recurring:
+        if self.recurring is not None:
             self.recurring.to_xml_element(root)
 
-        if self.tss_info:
+        if self.tss_info is not None:
             self.tss_info.to_xml_element(root)
 
-        if self.refund_hash:
+        if self.refund_hash is not None:
             element = SubElement(root, 'refundhash')
             element.text = self.refund_hash
 
-        if self.sha1hash:
-            element = SubElement(root, 'sha1hash')
-            element.text = self.sha1hash
+        if self.sha1_hash is not None:
+            element = SubElement(root, 'sha1_hash')
+            element.text = self.sha1_hash
 
         return tostring(root)
 
 
 class PaymentResponse(Response):
+    """
+    Class representing a Payment response received from Realex.
+
+    :param str timestamp: Time stamp in the format YYYYMMDDHHMMSS, which represents the time in the format year
+        month date hour minute second.
+    :param str merchant_id: Represents Realex Payments assigned merchant id.
+    :param str account: Represents the Realex Payments subaccount to use. If you omit this element then
+        we will use your default account.
+    :param str order_id: Represents the unique order id of this transaction.
+        Must be unique across all of your accounts.
+    :param str result: The result codes returned by the Realex Payments system.
+    :param str auth_code: If successful an authcode is returned from the bank.
+        Used when referencing this transaction in refund and void requests.
+    :param str message: The text of the response.
+    :param str payments_reference: The Realex payments reference (pasref) for the transaction.
+        Used when referencing this transaction in refund and void requests.
+    :param str cvn_result: The result of the Card Verification check.
+    :param str time_taken: The time taken.
+    :param str auth_time_taken: The AUTH time taken.
+    :param str acquirer_response: The raw XML response from the acquirer (if the account is set up to return this).
+    :param str batch_id: The batch id of the transaction. Returned in the case of auth and refund requests.
+        This can be used to assist with the reconciliation of your batches.
+    :param CardIssuer card_issuer: The raw XML response from the acquirer (if the account is set up to return this).
+    :param TssResult tss_result: The results of realscore.
+    :param str avs_postcode_response: Contains postcode match result from Address Verification Service.
+    :param str avs_address_response: Contains address match result from Address Verification Service.
+    :param str sha1_hash: The SHA-1 hash of certain elements of the response.
+        The details of this are to be found in the realauth developer's guide.
+    """
     def __init__(self, **kwargs):
         self.timestamp = kwargs.get('timestamp')
         self.merchant_id = kwargs.get('merchant_id')
         self.account = kwargs.get('account')
         self.order_id = kwargs.get('order_id')
-        self.auth_code = kwargs.get('auth_code')
         self.result = kwargs.get('result')
+        self.auth_code = kwargs.get('auth_code')
         self.message = kwargs.get('message')
         self.payments_reference = kwargs.get('payments_reference')
         self.cvn_result = kwargs.get('cvn_result')
@@ -455,10 +693,15 @@ class PaymentResponse(Response):
         self.tss_result = kwargs.get('tss_result')
         self.avs_postcode_response = kwargs.get('avs_postcode_response')
         self.avs_address_response = kwargs.get('avs_address_response')
-        self.sha1hash = kwargs.get('sha1hash')
+        self.sha1_hash = kwargs.get('sha1_hash')
 
     @staticmethod
     def from_xml(xml):
+        """
+        Unmarshals the passed XML to a `PaymentResponse` object.
+        :param xml: The XML to be be parsed.
+        :return: A instance of `PaymentResponse`
+        """
         root = fromstring(xml)
 
         response = PaymentResponse()
@@ -530,16 +773,17 @@ class PaymentResponse(Response):
         if element is not None:
             response.avs_address_response = element.text
 
-        element = root.find('sha1hash')
+        element = root.find('sha1_hash')
         if element is not None:
-            response.sha1hash = element.text
+            response.sha1_hash = element.text
 
         return response
 
     def is_hash_valid(self, secret):
         """
-        Validates the response from realex. Raises an exception if
-        validation fails.
+        Validates the hash in the response is correct.
+        :param str secret:
+        :return bool: `True` if valid, `False` if not.
         """
         # for any null values and set them to empty string for hashing
         timestamp = self.timestamp or ''
@@ -553,10 +797,21 @@ class PaymentResponse(Response):
         to_hash = '.'.join((timestamp, merchant_id, order_id, result, message, payments_reference, auth_code))
 
         expected_hash = GenerationUtils.generate_hash(to_hash, secret)
-        return expected_hash == self.sha1hash
+        return expected_hash == self.sha1_hash
 
 
 class ThreeDSecure(object):
+    """
+    Domain object representing 3D Secure (realmpi) information passed back from Realex.
+    Realmpi is a real time card holder verification system to assist a merchant with the
+    identification of potentially fraudulent transactions.
+
+    :param str status: The outcome of the authentication, required for the authorisation request.
+    :param str eci: The e-commerce indicator, required for the authorisation request.
+    :param str xid: The XID field, required for the authorisation request.
+    :param str cavv: The CAVV or UCAF, required for the authorisation request.
+    :param str algorithm: The alogirthm, required for the authorisation request.
+    """
     def __init__(self, status=None, eci=None, xid=None, cavv=None, algorithm=None):
         self.status = status
         self.eci = eci
@@ -592,11 +847,34 @@ class ThreeDSecure(object):
 
 
 class ThreeDSecureType(object):
+    """
+    Enumeration for the ThreeDSecure type.
+    """
     verify_enrolled = '3ds-verifyenrolled'
     verify_sig = '3ds-verifysig'
 
 
 class ThreeDSecureRequest(Request):
+    """
+    Class representing a 3DSecure request to be sent to Realex.
+
+    :param str timestamp: Format of timestamp is yyyyMMddhhmmss  e.g. 20150131094559 for 31/01/2015 09:45:59.
+        If the timestamp is more than a day (86400 seconds) away from the server time, then the request is rejected.
+    :param str type: The ThreeDSecure type.
+    :param str merchant_id: Represents Realex Payments assigned merchant id.
+    :param str account: Represents the Realex Payments subaccount to use.
+        If this element is omitted, then the default account is used.
+    :param str order_id: Represents the unique order id of this transaction.
+        Must be unique across all of the sub-accounts.
+    :param Amount amount: The `Amount` object containing the amount value and the currency type.
+    :param Card card: The `Card` object containing the card details to be passed in request.
+    :param str pares: The pre-encoded PaRes that you obtain from the Issuer's ACS.
+    :param comments: List of `Comment` objects to be passed in request.
+        Optionally, up to two comments can be associated with any transaction.
+    :type: list of Comment
+    :param str sha1_hash: Hash constructed from the time stamp, merchand ID, order ID, amount, currency,
+        card number and secret values.
+    """
     def __init__(self, **kwargs):
         self.timestamp = kwargs.get('timestamp')
         self.type = kwargs.get('type')
@@ -607,21 +885,26 @@ class ThreeDSecureRequest(Request):
         self.card = kwargs.get('car')
         self.pares = kwargs.get('pares')
         self.comments = kwargs.get('comments')
-        self.sha1hash = kwargs.get('sha1hash')
+        self.sha1_hash = kwargs.get('sha1_hash')
 
     def generate_defaults(self, secret):
+        """
+        Generates default values for fields such as hash, timestamp and order ID.
+        :param str secret:
+        """
         if self.timestamp is None:
             self.timestamp = GenerationUtils.generate_timestamp()
 
         if self.order_id is None:
             self.order_id = GenerationUtils.generate_order_id()
 
-        if self.sha1hash is None:
+        if self.sha1_hash is None:
             self.generate_hash(secret)
 
     def generate_hash(self, secret):
         """
         Create the security hash from a number of fields and the shared secret.
+        :param str secret:
         """
         timestamp = self.timestamp or ''
         merchant_id = self.merchant_id or ''
@@ -639,46 +922,86 @@ class ThreeDSecureRequest(Request):
 
         to_hash = '.'.join((timestamp, merchant_id, order_id, amount, currency, card_number))
 
-        self.sha1hash = GenerationUtils.generate_hash(to_hash, secret)
+        self.sha1_hash = GenerationUtils.generate_hash(to_hash, secret)
 
     def response_from_xml(self, xml):
+        """
+        Returns a concrete implementation of the response class from an XML source.
+        :param str xml: The xml to be parsed.
+        :return ThreeDSecureResponse: A instance of `ThreeDSecureResponse`.
+        """
         return ThreeDSecureResponse.from_xml(xml)
 
     def to_xml(self):
+        """
+        Returns an XML representation of the interface implementation.
+        :return str: The XML representation.
+        """
         root = Element('request')
         root.set('timestamp', self.timestamp)
         root.set('type', self.type)
 
-        element = SubElement(root, 'merchantid')
-        element.text = self.merchant_id
+        if self.merchant_id is not None:
+            element = SubElement(root, 'merchantid')
+            element.text = self.merchant_id
 
-        element = SubElement(root, 'account')
-        element.text = self.account
+        if self.account is not None:
+            element = SubElement(root, 'account')
+            element.text = self.account
 
-        element = SubElement(root, 'orderid')
-        element.text = self.order_id
+        if self.order_id is not None:
+            element = SubElement(root, 'orderid')
+            element.text = self.order_id
 
-        if self.amount:
+        if self.amount is not None:
             self.amount.to_xml_element(root)
 
-        if self.card:
+        if self.card is not None:
             self.card.to_xml_element(root)
 
-        element = SubElement(root, 'pares')
-        element.text = self.pares
+        if self.pares is not None:
+            element = SubElement(root, 'pares')
+            element.text = self.pares
 
         if self.comments:
             element = SubElement(root, 'comments')
             for comment in self.comments:
                 comment.to_xml_element(element)
 
-        element = SubElement(root, 'sha1hash')
-        element.text = self.sha1hash
+        if self.sha1_hash is not None:
+            element = SubElement(root, 'sha1_hash')
+            element.text = self.sha1_hash
 
         return tostring(root)
 
 
 class ThreeDSecureResponse(Response):
+    """
+    Class representing a 3DSecure response received from Realex.
+
+    :param str timestamp: The time stamp in the format YYYYMMDDHHMMSS,
+        which represents the time in the format year month date hour minute second.
+    :param str merchant_id: Represents Realex Payments assigned merchant id.
+    :param str account: Represents the Realex Payments subaccount to use.
+        If you omit this element then we will use your default account.
+    :param str order_id: Represents the unique order id of this transaction.
+        Must be unique across all of your accounts.
+    :param str result: The result codes returned by the Realex Payments system.
+    :param str auth_code: If successful an authcode is returned from the bank.
+        Used when referencing this transaction in refund and void requests.
+    :param str message: The text of the response.
+    :param str payments_reference: The Realex payments reference (pasref) for the transaction.
+        Used when referencing this transaction in refund and void requests.
+    :param str time_taken: The time taken.
+    :param str auth_time_taken: The AUTH time taken.
+    :param str pareq: The pre-encoded PaReq that you must post to the Issuer's ACS url.
+    :param str url: The URL of the Issuer ACS.
+    :param str enrolled: The enrolment response from ACS.
+    :param str xid: The XID from ACS.
+    :param ThreeDSecure threedsecure: The 3D Secure details.
+    :param str sha1_hash: The SHA-1 hash of certain elements of the response.
+        The details of this are to be found in the realmpi developer's guide.
+    """
     def __init__(self, **kwargs):
         self.timestamp = kwargs.get('timestamp')
         self.merchant_id = kwargs.get('merchant_id')
@@ -695,10 +1018,15 @@ class ThreeDSecureResponse(Response):
         self.enrolled = kwargs.get('enrolled')
         self.xid = kwargs.get('xid')
         self.threedsecure = kwargs.get('threedsecure')
-        self.sha1hash = kwargs.get('sha1hash')
+        self.sha1_hash = kwargs.get('sha1_hash')
 
     @staticmethod
     def from_xml(xml):
+        """
+        Unmarshals the passed XML to a `ThreeDSecureResponse` object.
+        :param xml: The XML to be be parsed.
+        :return: A instance of `ThreeDSecureResponse`
+        """
         response = ThreeDSecureResponse()
 
         root = fromstring(xml)
@@ -762,9 +1090,9 @@ class ThreeDSecureResponse(Response):
         if element is not None:
             response.threedsecure = ThreeDSecure.from_xml_element(element)
 
-        element = root.find('sha1hash')
+        element = root.find('sha1_hash')
         if element is not None:
-            response.sha1hash = element.text
+            response.sha1_hash = element.text
 
         return response
 
@@ -785,5 +1113,5 @@ class ThreeDSecureResponse(Response):
         to_hash = '.'.join((timestamp, merchant_id, order_id, result, message, payments_reference, auth_code))
 
         expected_hash = GenerationUtils.generate_hash(to_hash, secret)
-        return expected_hash == self.sha1hash
+        return expected_hash == self.sha1_hash
 
