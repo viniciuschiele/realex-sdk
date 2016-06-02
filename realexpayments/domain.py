@@ -3,9 +3,9 @@ from .utils import GenerationUtils
 
 
 class Amount(object):
-    def __init__(self, **kwargs):
-        self.currency = kwargs.get('currency')
-        self.amount = kwargs.get('amount')
+    def __init__(self, currency=None, amount=None):
+        self.currency = currency
+        self.amount = amount
 
     def to_xml_element(self, parent):
         element = SubElement(parent, 'amount')
@@ -14,35 +14,28 @@ class Amount(object):
 
 
 class AutoSettle(object):
-    class AutoSettleFlag(object):
-        true = '1'
-        false = '0'
-        multi = 'multi'
-
-    def __init__(self, **kwargs):
-        self.flag = kwargs.get('flag')
+    def __init__(self, flag=None):
+        self.flag = flag
 
     def to_xml_element(self, parent):
         element = SubElement(parent, 'autosettle')
         element.set('flag', self.flag)
 
 
-class Card(object):
-    class CardType(object):
-        visa = 'VISA'
-        mastercard = 'MC'
-        amex = 'AMEX'
-        cb = 'cb'
-        diners = 'DINERS'
-        jcb = 'JCB'
+class AutoSettleFlag(object):
+    true = '1'
+    false = '0'
+    multi = 'multi'
 
-    def __init__(self, **kwargs):
-        self.type = kwargs.get('type')
-        self.number = kwargs.get('number')
-        self.card_holder_name = kwargs.get('card_holder_name')
-        self.expiry_date = kwargs.get('expiry_date')
-        self.issue_number = kwargs.get('issue_number')
-        self.cvn = kwargs.get('cvn')
+
+class Card(object):
+    def __init__(self, type=None, number=None, card_holder_name=None, expiry_date=None, issue_number=None, cvn=None):
+        self.type = type
+        self.number = number
+        self.card_holder_name = card_holder_name
+        self.expiry_date = expiry_date
+        self.issue_number = issue_number
+        self.cvn = cvn
 
     def to_xml_element(self, parent):
         element = SubElement(parent, 'card')
@@ -66,16 +59,19 @@ class Card(object):
             self.cvn.to_xml_element(element)
 
 
-class Cvn(object):
-    class PresenceIndicator(object):
-        present = '1'
-        illegible = '2'
-        not_on_card = '3'
-        not_requested = '4'
+class CardType(object):
+    visa = 'VISA'
+    mastercard = 'MC'
+    amex = 'AMEX'
+    cb = 'CB'
+    diners = 'DINERS'
+    jcb = 'JCB'
 
-    def __init__(self, **kwargs):
-        self.number = kwargs.get('number')
-        self.presence_indicator = kwargs.get('presence_indicator')
+
+class Cvn(object):
+    def __init__(self, number=None, presence_indicator=None):
+        self.number = number
+        self.presence_indicator = presence_indicator
 
     def to_xml_element(self, parent):
         element = SubElement(parent, 'cvn')
@@ -87,12 +83,19 @@ class Cvn(object):
         sub_element.text = self.presence_indicator
 
 
+class PresenceIndicator(object):
+    present = '1'
+    illegible = '2'
+    not_on_card = '3'
+    not_requested = '4'
+
+
 class CardIssuer(object):
-    def __init__(self, **kwargs):
-        self.bank = kwargs.get('bank')
-        self.country = kwargs.get('country')
-        self.country_code = kwargs.get('country_code')
-        self.region = kwargs.get('region')
+    def __init__(self, bank=None, country=None, country_code=None, region=None):
+        self.bank = bank
+        self.country = country
+        self.country_code = country_code
+        self.region = region
 
     @staticmethod
     def from_xml_element(element):
@@ -118,10 +121,10 @@ class CardIssuer(object):
 
 
 class Mpi(object):
-    def __init__(self, **kwargs):
-        self.cavv = kwargs.get('cavv')
-        self.xid = kwargs.get('xid')
-        self.eci = kwargs.get('eci')
+    def __init__(self, cavv=None, xid=None, eci=None):
+        self.cavv = cavv
+        self.xid = xid
+        self.eci = eci
 
     def to_xml_element(self, parent):
         element = SubElement(parent, 'mpi')
@@ -151,18 +154,19 @@ class Response(object):
         raise NotImplementedError()
 
 
-class PaymentRequest(Request):
-    class PaymentType(object):
-        auth = 'auth'
-        auth_mobile = 'auth-mobile'
-        settle = 'settle'
-        void = 'void'
-        rebate = 'rebate'
-        otb = 'otb'
-        credit = 'credit'
-        hold = 'hold'
-        release = 'release'
+class PaymentType(object):
+    auth = 'auth'
+    auth_mobile = 'auth-mobile'
+    settle = 'settle'
+    void = 'void'
+    rebate = 'rebate'
+    otb = 'otb'
+    credit = 'credit'
+    hold = 'hold'
+    release = 'release'
 
+
+class PaymentRequest(Request):
     def __init__(self, **kwargs):
         self.timestamp = kwargs.get('timestamp')
         self.type = kwargs.get('type')
@@ -206,9 +210,9 @@ class PaymentRequest(Request):
         if self.card:
             card_number = self.card.number or ''
 
-        if self.type == self.PaymentType.auth_mobile:
+        if self.type == PaymentType.auth_mobile:
             to_hash = '.'.join((timestamp, merchant_id, order_id, '.', token))
-        elif self.type == self.PaymentType.otb:
+        elif self.type == PaymentType.otb:
             to_hash = '.'.join((timestamp, merchant_id, order_id, card_number))
         else:
             to_hash = '.'.join((timestamp, merchant_id, order_id, amount, currency, card_number))
@@ -358,12 +362,12 @@ class PaymentResponse(Response):
 
 
 class ThreeDSecure(object):
-    def __init__(self, **kwargs):
-        self.status = kwargs.get('status')
-        self.eci = kwargs.get('eci')
-        self.xid = kwargs.get('xid')
-        self.cavv = kwargs.get('cavv')
-        self.algorithm = kwargs.get('algorithm')
+    def __init__(self, status=None, eci=None, xid=None, cavv=None, algorithm=None):
+        self.status = status
+        self.eci = eci
+        self.xid = xid
+        self.cavv = cavv
+        self.algorithm = algorithm
 
     @staticmethod
     def from_xml_element(element):

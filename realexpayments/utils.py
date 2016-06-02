@@ -67,7 +67,7 @@ class ResponseUtils(object):
         result code and message from the response.
 
         A full response indicates the request could be processed and the response object will return fully populated.
-Add triggers for provisioninggit+https://github.com/viniciuschiele/realex-client
+
         Please note, full responses may still contain errors e.g. Bank errors (1xx). The result code should be
         checked for success. For example a full response with a result code of 101 will not throw an exception and will return
         a fully populated response object.
