@@ -2,6 +2,29 @@ from xml.etree.ElementTree import Element, SubElement, tostring, fromstring
 from .utils import GenerationUtils
 
 
+class Address(object):
+    def __init__(self, type=None, code=None, country=None):
+        self.type = type
+        self.code = code
+        self.country = country
+
+    def to_xml_element(self, parent):
+        element = SubElement(parent, 'address')
+        element.set('type', self.type)
+
+        sub_element = SubElement(element, 'code')
+        sub_element.text = self.code
+
+        sub_element = SubElement(element, 'country')
+        sub_element.text = self.country
+
+
+class AddressType(object):
+    none = ''
+    shipping = 'shipping'
+    billing = 'billing'
+
+
 class Amount(object):
     def __init__(self, currency=None, amount=None):
         self.currency = currency
@@ -138,6 +161,117 @@ class Mpi(object):
         sub_element.text = self.eci
 
 
+class Comment(object):
+    def __init__(self, id=None, comment=None):
+        self.id = id
+        self.comment = comment
+
+    def to_xml_element(self, parent):
+        element = SubElement(parent, 'comment')
+        element.set('id', self.id)
+        element.text = self.comment
+
+
+class Recurring(object):
+    def __init__(self, type=None, sequence=None, flag=None):
+        self.type = type
+        self.sequence = sequence
+        self.flag = flag
+
+    def to_xml_element(self, parent):
+        element = SubElement(parent, 'recurring')
+        element.set('type', self.type)
+        element.set('sequence', self.sequence)
+        element.set('flag', self.flag)
+
+
+class RecurringType(object):
+    none = ''
+    variable = 'variable'
+    fixed = 'fixed'
+
+
+class RecurringSequence(object):
+    none = ''
+    first = 'first'
+    subsequent = 'subsequent'
+    last = 'last'
+
+
+class RecurringFlag(object):
+    none = ''
+    zero = '0'
+    one = '1'
+    two = '2'
+
+
+class TssInfo(object):
+    def __init__(self, customer_number=None, product_id=None, variable_reference=None,
+                 customer_ip_address=None, addresses=None):
+        self.customer_number = customer_number
+        self.product_id = product_id
+        self.variable_reference = variable_reference
+        self.customer_ip_address = customer_ip_address
+        self.addresses = addresses
+
+    def to_xml_element(self, parent):
+        element = SubElement(parent, 'tssinfo')
+
+        sub_element = SubElement(element, 'custnum')
+        sub_element.text = self.customer_number
+
+        sub_element = SubElement(element, 'prodid')
+        sub_element.text = self.product_id
+
+        sub_element = SubElement(element, 'varref')
+        sub_element.text = self.variable_reference
+
+        sub_element = SubElement(element, 'custipaddress')
+        sub_element.text = self.customer_ip_address
+
+        if self.addresses:
+            for address in self.addresses:
+                address.to_xml_element(element)
+
+
+class TssResult(object):
+    def __init__(self, result=None, checks=None):
+        self.result = result
+        self.checks = checks
+
+    @staticmethod
+    def from_xml_element(element):
+        tss_result = TssResult()
+
+        sub_element = element.find('result')
+        if sub_element is not None:
+            tss_result.result = sub_element.text
+
+        sub_elements = element.findall('check')
+        tss_result.checks = []
+        for sub_element in sub_elements:
+            tss_result.checks.append(TssResultCheck.from_xml_element(sub_element))
+
+        return tss_result
+
+
+class TssResultCheck(object):
+    def __init__(self, id=None, value=None):
+        self.id = id
+        self.value = value
+
+    @staticmethod
+    def from_xml_element(element):
+        check = TssResultCheck()
+
+        if 'id' in element.attrib:
+            check.id = element.attrib['id']
+
+        check.value = element.text
+
+        return check
+
+
 class Request(object):
     def generate_defaults(self, secret):
         raise NotImplementedError()
@@ -172,13 +306,22 @@ class PaymentRequest(Request):
         self.type = kwargs.get('type')
         self.merchant_id = kwargs.get('merchant_id')
         self.account = kwargs.get('account')
+        self.channel = kwargs.get('channel')
         self.order_id = kwargs.get('order_id')
         self.currency = kwargs.get('currency')
         self.amount = kwargs.get('amount')
         self.card = kwargs.get('card')
         self.auto_settle = kwargs.get('auto_settle')
+        self.comments = kwargs.get('comments')
+        self.auth_code = kwargs.get('authcode')
+        self.payments_reference = kwargs.get('payments_reference')
+        self.mobile = kwargs.get('mobile')
         self.token = kwargs.get('token')
         self.mpi = kwargs.get('mpi')
+        self.fraud_filter = kwargs.get('fraud_filter')
+        self.recurring = kwargs.get('recurring')
+        self.tss_info = kwargs.get('tss_info')
+        self.refund_hash = kwargs.get('refund_hash')
         self.sha1hash = kwargs.get('sha1hash')
 
     def generate_defaults(self, secret):
@@ -227,11 +370,17 @@ class PaymentRequest(Request):
         root.set('timestamp', self.timestamp)
         root.set('type', self.type)
 
-        element = SubElement(root, 'merchantid')
-        element.text = self.merchant_id
+        if self.merchant_id:
+            element = SubElement(root, 'merchantid')
+            element.text = self.merchant_id
 
-        element = SubElement(root, 'orderid')
-        element.text = self.order_id
+        if self.channel:
+            element = SubElement(root, 'channel')
+            element.text = self.channel
+
+        if self.order_id:
+            element = SubElement(root, 'orderid')
+            element.text = self.order_id
 
         if self.amount:
             self.amount.to_xml_element(root)
@@ -242,11 +391,47 @@ class PaymentRequest(Request):
         if self.auto_settle:
             self.auto_settle.to_xml_element(root)
 
+        if self.comments:
+            element = SubElement(root, 'comments')
+            for comment in self.comments:
+                comment.to_xml_element(element)
+
+        if self.auth_code:
+            element = SubElement(root, 'auth_code')
+            element.text = self.auth_code
+
+        if self.payments_reference:
+            element = SubElement(root, 'pasref')
+            element.text = self.payments_reference
+
+        if self.mobile:
+            element = SubElement(root, 'mobile')
+            element.text = self.mobile
+
+        if self.token:
+            element = SubElement(root, 'token')
+            element.text = self.token
+
         if self.mpi:
             self.mpi.to_xml_element(root)
 
-        element = SubElement(root, 'sha1hash')
-        element.text = self.sha1hash
+        if self.fraud_filter:
+            element = SubElement(root, 'fraudfilter')
+            element.text = self.fraud_filter
+
+        if self.recurring:
+            self.recurring.to_xml_element(root)
+
+        if self.tss_info:
+            self.tss_info.to_xml_element(root)
+
+        if self.refund_hash:
+            element = SubElement(root, 'refundhash')
+            element.text = self.refund_hash
+
+        if self.sha1hash:
+            element = SubElement(root, 'sha1hash')
+            element.text = self.sha1hash
 
         return tostring(root)
 
@@ -267,8 +452,10 @@ class PaymentResponse(Response):
         self.acquirer_response = kwargs.get('acquirer_response')
         self.batch_id = kwargs.get('batch_id')
         self.card_issuer = kwargs.get('card_issuer')
+        self.tss_result = kwargs.get('tss_result')
+        self.avs_postcode_response = kwargs.get('avs_postcode_response')
+        self.avs_address_response = kwargs.get('avs_address_response')
         self.sha1hash = kwargs.get('sha1hash')
-        self.md5hash = kwargs.get('md5hash')
 
     @staticmethod
     def from_xml(xml):
@@ -331,13 +518,21 @@ class PaymentResponse(Response):
         if element is not None:
             response.card_issuer = CardIssuer.from_xml_element(element)
 
+        element = root.find('tss')
+        if element is not None:
+            response.tss_result = TssResult.from_xml_element(element)
+
+        element = root.find('avspostcoderesponse')
+        if element is not None:
+            response.avs_postcode_response = element.text
+
+        element = root.find('avsaddressresponse')
+        if element is not None:
+            response.avs_address_response = element.text
+
         element = root.find('sha1hash')
         if element is not None:
             response.sha1hash = element.text
-
-        element = root.find('md5hash')
-        if element is not None:
-            response.md5hash = element.text
 
         return response
 
@@ -411,6 +606,7 @@ class ThreeDSecureRequest(Request):
         self.amount = kwargs.get('amount')
         self.card = kwargs.get('car')
         self.pares = kwargs.get('pares')
+        self.comments = kwargs.get('comments')
         self.sha1hash = kwargs.get('sha1hash')
 
     def generate_defaults(self, secret):
@@ -470,6 +666,11 @@ class ThreeDSecureRequest(Request):
 
         element = SubElement(root, 'pares')
         element.text = self.pares
+
+        if self.comments:
+            element = SubElement(root, 'comments')
+            for comment in self.comments:
+                comment.to_xml_element(element)
 
         element = SubElement(root, 'sha1hash')
         element.text = self.sha1hash
