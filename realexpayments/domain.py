@@ -639,7 +639,7 @@ class PaymentRequest(Request):
             element.text = self.refund_hash
 
         if self.sha1_hash is not None:
-            element = SubElement(root, 'sha1_hash')
+            element = SubElement(root, 'sha1hash')
             element.text = self.sha1_hash
 
         return tostring(root)
@@ -773,7 +773,7 @@ class PaymentResponse(Response):
         if element is not None:
             response.avs_address_response = element.text
 
-        element = root.find('sha1_hash')
+        element = root.find('sha1hash')
         if element is not None:
             response.sha1_hash = element.text
 
@@ -969,7 +969,7 @@ class ThreeDSecureRequest(Request):
                 comment.to_xml_element(element)
 
         if self.sha1_hash is not None:
-            element = SubElement(root, 'sha1_hash')
+            element = SubElement(root, 'sha1hash')
             element.text = self.sha1_hash
 
         return tostring(root)
@@ -1090,7 +1090,7 @@ class ThreeDSecureResponse(Response):
         if element is not None:
             response.threedsecure = ThreeDSecure.from_xml_element(element)
 
-        element = root.find('sha1_hash')
+        element = root.find('sha1hash')
         if element is not None:
             response.sha1_hash = element.text
 
