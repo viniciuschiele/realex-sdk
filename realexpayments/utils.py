@@ -125,3 +125,66 @@ class ResponseUtils(object):
         except Exception as e:
             logger.exception('Error parsing result %s', result)
             raise RealexError('Error parsing result.', e)
+
+
+class PaymentUtils(object):
+    @staticmethod
+    def format_amount(amount):
+        """
+        Convert the amount in the smallest unit of the required currency
+        (For example: 2000=20 euro, dollar or pounds).
+        :param int|float amount: The amount to be converted.
+        :return str: The amount as string.
+        """
+        return str(int(amount * 100))
+
+    @staticmethod
+    def format_expire_date(expiry_month, expiry_year):
+        """
+        Convert the given month and year in the format MMYY.
+        :param int expiry_month: The month.
+        :param int expiry_year: The year.
+        :return str: The expiry date in the format MMYY.
+        """
+        return ('%02d' % expiry_month) + ('%02d' % expiry_year)
+
+    @staticmethod
+    def get_card_not_enrolled_eci(card_type):
+        """
+        Get the card not enrolled ECI for the given card type.
+        https://resourcecentre.realexpayments.com/pdf/RealControl%20Reporting%20-%20User%20Guide%20v1.0.pdf
+        :param str card_type: The card type. e.g: VISA, MC, AMEX,...
+        :return str: The ECI.
+        """
+        if card_type == 'VISA':
+            return '6'
+
+        if card_type == 'MC':
+            return '1'
+
+        raise Exception('Only VISA and MC support 3DSecure.')
+
+    @staticmethod
+    def get_non_3dsecure_transaction_eci(card_type):
+        """
+        Get the non 3d secure transaction ECI for the given card type.
+        https://resourcecentre.realexpayments.com/pdf/RealControl%20Reporting%20-%20User%20Guide%20v1.0.pdf
+        :param str card_type: The card type. e.g: VISA, MC, AMEX,...
+        :return str: The ECI.
+        """
+        if card_type == 'VISA':
+            return '7'
+
+        if card_type == 'MC':
+            return '0'
+
+        raise Exception('Only VISA and MC support 3DSecure.')
+
+    @staticmethod
+    def is_3dsecure_supported(card_type):
+        """
+        Get the value that indicates whether the card type supports 3D Secure.
+        :param str card_type: The card type. e.g: VISA, MC, AMEX,...
+        :return: `True` if the card type supports 3D Secure.
+        """
+        return card_type != 'AMEX'
