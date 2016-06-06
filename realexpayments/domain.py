@@ -1,3 +1,7 @@
+"""
+This module provides all the domain classes used by Realex.
+"""
+
 from xml.etree.ElementTree import Element, SubElement, tostring, fromstring
 from .utils import GenerationUtils
 

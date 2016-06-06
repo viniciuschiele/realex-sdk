@@ -1,8 +1,12 @@
+"""
+This module provides several util classes.
+"""
+
 import hashlib
-import requests
 
 from datetime import datetime
 from logging import getLogger
+from requests import sessions
 from uuid import uuid4
 from .exceptions import RealexError
 
@@ -57,14 +61,15 @@ class HttpUtils(object):
     HTTPS_PROTOCOL = 'https'
 
     @staticmethod
-    def send_message(url, xml, timeout, only_allow_https, proxies):
+    def send_message(url, xml, session, timeout, only_allow_https, proxies):
         """
-        Perform the actual send of the message, according to the HttpConfiguration, and get the response.
-        This will also check if only HTTPS is allowed, based on the {@link HttpConfiguration}, and will
-        throw a `RealexException` if HTTP is used when only HTTPS is allowed. A `RealexError`
+        Perform the actual send of the message and get the response.
+        This will also check if only HTTPS is allowed and will throw a `RealexError`
+        if HTTP is used when only HTTPS is allowed. A `RealexError`
         is also thrown if the response from Realex is not success (ie. if it's not 200 status code).
         :param str url: The realex url.
         :param str xml: The xml to be sent.
+        :param Session session: The requests' session.
         :param int timeout: The timeout, in seconds, for sending a request to Realex.
         :param bool only_allow_https: `True` if only HTTPS is allowed for the endpoint.
         :param dict proxies: The proxies for `requests`.
@@ -81,7 +86,17 @@ class HttpUtils(object):
         try:
             logger.debug('Executing HTTP Post message to: ' + url)
             headers = {'Content-Type': 'application/xml'}
-            response = requests.post(url, data=xml, headers=headers, timeout=timeout, proxies=proxies)
+
+            own_session = session is None
+
+            if own_session:
+                session = sessions.Session()
+
+            try:
+                response = session.post(url, data=xml, headers=headers, timeout=timeout, proxies=proxies)
+            finally:
+                if own_session:
+                    session.close()
 
             logger.debug('Checking the HTTP response status code.')
             if response.status_code != 200:
