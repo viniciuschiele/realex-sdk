@@ -19,8 +19,12 @@ class Address(object):
         self.code = code
         self.country = country
 
-    def to_xml_element(self, parent):
-        element = SubElement(parent, 'address')
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: A XML element.
+        """
+        element = Element('address')
         element.set('type', self.type)
 
         sub_element = SubElement(element, 'code')
@@ -28,6 +32,8 @@ class Address(object):
 
         sub_element = SubElement(element, 'country')
         sub_element.text = self.country
+
+        return element
 
 
 class AddressType(object):
@@ -51,10 +57,15 @@ class Amount(object):
         self.currency = currency
         self.amount = amount
 
-    def to_xml_element(self, parent):
-        element = SubElement(parent, 'amount')
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: A XML element.
+        """
+        element = Element('amount')
         element.set('currency', self.currency)
         element.text = self.amount
+        return element
 
 
 class AutoSettle(object):
@@ -69,9 +80,14 @@ class AutoSettle(object):
     def __init__(self, flag=None):
         self.flag = flag
 
-    def to_xml_element(self, parent):
-        element = SubElement(parent, 'autosettle')
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: A XML element.
+        """
+        element = Element('autosettle')
         element.set('flag', self.flag)
+        return element
 
 
 class AutoSettleFlag(object):
@@ -103,8 +119,12 @@ class Card(object):
         self.issue_number = issue_number
         self.cvn = cvn
 
-    def to_xml_element(self, parent):
-        element = SubElement(parent, 'card')
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: A XML element.
+        """
+        element = Element('card')
 
         sub_element = SubElement(element, 'type')
         sub_element.text = self.type
@@ -122,7 +142,7 @@ class Card(object):
         sub_element.text = str(self.issue_number)
 
         if self.cvn:
-            self.cvn.to_xml_element(element)
+            element.append(self.cvn.to_xml_element(element))
 
 
 class CardType(object):
@@ -150,14 +170,20 @@ class Cvn(object):
         self.number = number
         self.presence_indicator = presence_indicator
 
-    def to_xml_element(self, parent):
-        element = SubElement(parent, 'cvn')
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: A XML element.
+        """
+        element = Element('cvn')
 
         sub_element = SubElement(element, 'number')
         sub_element.text = self.number
 
         sub_element = SubElement(element, 'presind')
         sub_element.text = self.presence_indicator
+
+        return element
 
 
 class PresenceIndicator(object):
@@ -189,6 +215,10 @@ class CardIssuer(object):
 
     @staticmethod
     def from_xml_element(element):
+        """
+        Load the current instance with the given XML `Element` object.
+        :param Element element: The XML element.
+        """
         card_issuer = CardIssuer()
 
         sub_element = element.find('bank')
@@ -228,8 +258,13 @@ class Mpi(object):
         self.xid = xid
         self.eci = eci
 
-    def to_xml_element(self, parent):
-        element = SubElement(parent, 'mpi')
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: A XML element.
+        """
+        element = Element('mpi')
+
         sub_element = SubElement(element, 'cavv')
         sub_element.text = self.cavv
 
@@ -238,6 +273,8 @@ class Mpi(object):
 
         sub_element = SubElement(element, 'eci')
         sub_element.text = self.eci
+
+        return element
 
 
 class Comment(object):
@@ -251,10 +288,15 @@ class Comment(object):
         self.id = id
         self.comment = comment
 
-    def to_xml_element(self, parent):
-        element = SubElement(parent, 'comment')
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: A XML element.
+        """
+        element = Element('comment')
         element.set('id', str(self.id))
         element.text = self.comment
+        return element
 
 
 class Recurring(object):
@@ -272,11 +314,16 @@ class Recurring(object):
         self.sequence = sequence
         self.flag = flag
 
-    def to_xml_element(self, parent):
-        element = SubElement(parent, 'recurring')
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: A XML element.
+        """
+        element = Element('recurring')
         element.set('type', self.type)
         element.set('sequence', self.sequence)
         element.set('flag', self.flag)
+        return element
 
 
 class RecurringType(object):
@@ -333,8 +380,12 @@ class TssInfo(object):
         self.customer_ip_address = customer_ip_address
         self.addresses = addresses
 
-    def to_xml_element(self, parent):
-        element = SubElement(parent, 'tssinfo')
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: A XML element.
+        """
+        element = Element('tssinfo')
 
         sub_element = SubElement(element, 'custnum')
         sub_element.text = self.customer_number
@@ -350,7 +401,9 @@ class TssInfo(object):
 
         if self.addresses:
             for address in self.addresses:
-                address.to_xml_element(element)
+                element.append(address.to_xml_element())
+
+        return element
 
 
 class TssResult(object):
@@ -368,6 +421,10 @@ class TssResult(object):
 
     @staticmethod
     def from_xml_element(element):
+        """
+        Load the current instance with the given XML `Element` object.
+        :param Element element: The XML element.
+        """
         tss_result = TssResult()
 
         sub_element = element.find('result')
@@ -395,6 +452,10 @@ class TssResultCheck(object):
 
     @staticmethod
     def from_xml_element(element):
+        """
+        Load the current instance with the given XML `Element` object.
+        :param Element element: The XML element.
+        """
         check = TssResultCheck()
 
         if 'id' in element.attrib:
@@ -596,18 +657,18 @@ class PaymentRequest(Request):
             element.text = self.order_id
 
         if self.amount is not None:
-            self.amount.to_xml_element(root)
+            root.append(self.amount.to_xml_element())
 
         if self.card is not None:
-            self.card.to_xml_element(root)
+            root.append(self.card.to_xml_element())
 
         if self.auto_settle is not None:
-            self.auto_settle.to_xml_element(root)
+            root.append(self.auto_settle.to_xml_element())
 
         if self.comments:
             element = SubElement(root, 'comments')
             for comment in self.comments:
-                comment.to_xml_element(element)
+                element.append(comment.to_xml_element())
 
         if self.auth_code is not None:
             element = SubElement(root, 'auth_code')
@@ -626,17 +687,17 @@ class PaymentRequest(Request):
             element.text = self.token
 
         if self.mpi is not None:
-            self.mpi.to_xml_element(root)
+            root.append(self.mpi.to_xml_element())
 
         if self.fraud_filter is not None:
             element = SubElement(root, 'fraudfilter')
             element.text = self.fraud_filter
 
         if self.recurring is not None:
-            self.recurring.to_xml_element(root)
+            root.append(self.recurring.to_xml_element())
 
         if self.tss_info is not None:
-            self.tss_info.to_xml_element(root)
+            root.append(self.tss_info.to_xml_element())
 
         if self.refund_hash is not None:
             element = SubElement(root, 'refundhash')
@@ -825,6 +886,10 @@ class ThreeDSecure(object):
 
     @staticmethod
     def from_xml_element(element):
+        """
+        Load the current instance with the given XML `Element` object.
+        :param Element element: The XML element.
+        """
         threedsecure = ThreeDSecure()
 
         sub_element = element.find('status')
@@ -958,10 +1023,10 @@ class ThreeDSecureRequest(Request):
             element.text = self.order_id
 
         if self.amount is not None:
-            self.amount.to_xml_element(root)
+            root.append(self.amount.to_xml_element())
 
         if self.card is not None:
-            self.card.to_xml_element(root)
+            root.append(self.card.to_xml_element())
 
         if self.pares is not None:
             element = SubElement(root, 'pares')
@@ -970,7 +1035,7 @@ class ThreeDSecureRequest(Request):
         if self.comments:
             element = SubElement(root, 'comments')
             for comment in self.comments:
-                comment.to_xml_element(element)
+                element.append(comment.to_xml_element())
 
         if self.sha1_hash is not None:
             element = SubElement(root, 'sha1hash')
@@ -1118,4 +1183,3 @@ class ThreeDSecureResponse(Response):
 
         expected_hash = GenerationUtils.generate_hash(to_hash, secret)
         return expected_hash == self.sha1_hash
-
