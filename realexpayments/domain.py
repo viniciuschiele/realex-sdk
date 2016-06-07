@@ -24,14 +24,10 @@ class Address(object):
         Return an XML element of the current state of the class.
         :return Element: A XML element.
         """
-        element = Element('address')
-        element.set('type', self.type)
+        element = Element('address', type=self.type)
 
-        sub_element = SubElement(element, 'code')
-        sub_element.text = self.code
-
-        sub_element = SubElement(element, 'country')
-        sub_element.text = self.country
+        SubElement(element, 'code').text = self.code
+        SubElement(element, 'country').text = self.country
 
         return element
 
@@ -62,8 +58,7 @@ class Amount(object):
         Return an XML element of the current state of the class.
         :return Element: A XML element.
         """
-        element = Element('amount')
-        element.set('currency', self.currency)
+        element = Element('amount', currency=self.currency)
         element.text = self.amount
         return element
 
@@ -85,9 +80,7 @@ class AutoSettle(object):
         Return an XML element of the current state of the class.
         :return Element: A XML element.
         """
-        element = Element('autosettle')
-        element.set('flag', self.flag)
-        return element
+        return Element('autosettle', flag=self.flag)
 
 
 class AutoSettleFlag(object):
@@ -126,23 +119,14 @@ class Card(object):
         """
         element = Element('card')
 
-        sub_element = SubElement(element, 'type')
-        sub_element.text = self.type
-
-        sub_element = SubElement(element, 'number')
-        sub_element.text = self.number
-
-        sub_element = SubElement(element, 'expdate')
-        sub_element.text = self.expiry_date
-
-        sub_element = SubElement(element, 'chname')
-        sub_element.text = self.card_holder_name
-
-        sub_element = SubElement(element, 'issueno')
-        sub_element.text = str(self.issue_number)
+        SubElement(element, 'type').text = self.type
+        SubElement(element, 'number').text = self.number
+        SubElement(element, 'expdate').text = self.expiry_date
+        SubElement(element, 'chname').text = self.card_holder_name
+        SubElement(element, 'issueno').text = str(self.issue_number)
 
         if self.cvn:
-            element.append(self.cvn.to_xml_element(element))
+            element.append(self.cvn.to_xml_element())
 
 
 class CardType(object):
@@ -177,11 +161,8 @@ class Cvn(object):
         """
         element = Element('cvn')
 
-        sub_element = SubElement(element, 'number')
-        sub_element.text = self.number
-
-        sub_element = SubElement(element, 'presind')
-        sub_element.text = self.presence_indicator
+        SubElement(element, 'number').text = self.number
+        SubElement(element, 'presind').text = self.presence_indicator
 
         return element
 
@@ -265,14 +246,9 @@ class Mpi(object):
         """
         element = Element('mpi')
 
-        sub_element = SubElement(element, 'cavv')
-        sub_element.text = self.cavv
-
-        sub_element = SubElement(element, 'xid')
-        sub_element.text = self.xid
-
-        sub_element = SubElement(element, 'eci')
-        sub_element.text = self.eci
+        SubElement(element, 'cavv').text = self.cavv
+        SubElement(element, 'xid').text = self.xid
+        SubElement(element, 'eci').text = self.eci
 
         return element
 
@@ -293,8 +269,7 @@ class Comment(object):
         Return an XML element of the current state of the class.
         :return Element: A XML element.
         """
-        element = Element('comment')
-        element.set('id', str(self.id))
+        element = Element('comment', id=str(self.id))
         element.text = self.comment
         return element
 
@@ -319,11 +294,7 @@ class Recurring(object):
         Return an XML element of the current state of the class.
         :return Element: A XML element.
         """
-        element = Element('recurring')
-        element.set('type', self.type)
-        element.set('sequence', self.sequence)
-        element.set('flag', self.flag)
-        return element
+        return Element('recurring', type=self.type, sequence=self.sequence, flag=self.flag)
 
 
 class RecurringType(object):
@@ -387,17 +358,10 @@ class TssInfo(object):
         """
         element = Element('tssinfo')
 
-        sub_element = SubElement(element, 'custnum')
-        sub_element.text = self.customer_number
-
-        sub_element = SubElement(element, 'prodid')
-        sub_element.text = self.product_id
-
-        sub_element = SubElement(element, 'varref')
-        sub_element.text = self.variable_reference
-
-        sub_element = SubElement(element, 'custipaddress')
-        sub_element.text = self.customer_ip_address
+        SubElement(element, 'custnum').text = self.customer_number
+        SubElement(element, 'prodid').text = self.product_id
+        SubElement(element, 'varref').text = self.variable_reference
+        SubElement(element, 'custipaddress').text = self.customer_ip_address
 
         if self.addresses:
             for address in self.addresses:
@@ -640,21 +604,16 @@ class PaymentRequest(Request):
         Returns an XML representation of the interface implementation.
         :return str: The XML representation.
         """
-        root = Element('request')
-        root.set('timestamp', self.timestamp)
-        root.set('type', self.type)
+        root = Element('request', timestamp=self.timestamp, type=self.type)
 
         if self.merchant_id is not None:
-            element = SubElement(root, 'merchantid')
-            element.text = self.merchant_id
+            SubElement(root, 'merchantid').text = self.merchant_id
 
         if self.channel is not None:
-            element = SubElement(root, 'channel')
-            element.text = self.channel
+            SubElement(root, 'channel').text = self.channel
 
         if self.order_id is not None:
-            element = SubElement(root, 'orderid')
-            element.text = self.order_id
+            SubElement(root, 'orderid').text = self.order_id
 
         if self.amount is not None:
             root.append(self.amount.to_xml_element())
@@ -671,27 +630,22 @@ class PaymentRequest(Request):
                 element.append(comment.to_xml_element())
 
         if self.auth_code is not None:
-            element = SubElement(root, 'auth_code')
-            element.text = self.auth_code
+            SubElement(root, 'auth_code').text = self.auth_code
 
         if self.payments_reference is not None:
-            element = SubElement(root, 'pasref')
-            element.text = self.payments_reference
+            SubElement(root, 'pasref').text = self.payments_reference
 
         if self.mobile is not None:
-            element = SubElement(root, 'mobile')
-            element.text = self.mobile
+            SubElement(root, 'mobile').text = self.mobile
 
         if self.token is not None:
-            element = SubElement(root, 'token')
-            element.text = self.token
+            SubElement(root, 'token').text = self.token
 
         if self.mpi is not None:
             root.append(self.mpi.to_xml_element())
 
         if self.fraud_filter is not None:
-            element = SubElement(root, 'fraudfilter')
-            element.text = self.fraud_filter
+            SubElement(root, 'fraudfilter').text = self.fraud_filter
 
         if self.recurring is not None:
             root.append(self.recurring.to_xml_element())
@@ -700,12 +654,10 @@ class PaymentRequest(Request):
             root.append(self.tss_info.to_xml_element())
 
         if self.refund_hash is not None:
-            element = SubElement(root, 'refundhash')
-            element.text = self.refund_hash
+            SubElement(root, 'refundhash').text = self.refund_hash
 
         if self.sha1_hash is not None:
-            element = SubElement(root, 'sha1hash')
-            element.text = self.sha1_hash
+            SubElement(root, 'sha1hash').text = self.sha1_hash
 
         return tostring(root)
 
@@ -1006,21 +958,16 @@ class ThreeDSecureRequest(Request):
         Returns an XML representation of the interface implementation.
         :return str: The XML representation.
         """
-        root = Element('request')
-        root.set('timestamp', self.timestamp)
-        root.set('type', self.type)
+        root = Element('request', timestamp=self.timestamp, type=self.type)
 
         if self.merchant_id is not None:
-            element = SubElement(root, 'merchantid')
-            element.text = self.merchant_id
+            SubElement(root, 'merchantid').text = self.merchant_id
 
         if self.account is not None:
-            element = SubElement(root, 'account')
-            element.text = self.account
+            SubElement(root, 'account').text = self.account
 
         if self.order_id is not None:
-            element = SubElement(root, 'orderid')
-            element.text = self.order_id
+            SubElement(root, 'orderid').text = self.order_id
 
         if self.amount is not None:
             root.append(self.amount.to_xml_element())
@@ -1029,8 +976,7 @@ class ThreeDSecureRequest(Request):
             root.append(self.card.to_xml_element())
 
         if self.pares is not None:
-            element = SubElement(root, 'pares')
-            element.text = self.pares
+            SubElement(root, 'pares').text = self.pares
 
         if self.comments:
             element = SubElement(root, 'comments')
@@ -1038,8 +984,7 @@ class ThreeDSecureRequest(Request):
                 element.append(comment.to_xml_element())
 
         if self.sha1_hash is not None:
-            element = SubElement(root, 'sha1hash')
-            element.text = self.sha1_hash
+            SubElement(root, 'sha1hash').text = self.sha1_hash
 
         return tostring(root)
 
@@ -1169,6 +1114,7 @@ class ThreeDSecureResponse(Response):
         """
         Validates the response from realex. Raises an exception if
         validation fails.
+        :param str secret:
         """
         # for any null values and set them to empty string for hashing
         timestamp = self.timestamp or ''
