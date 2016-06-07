@@ -1,14 +1,14 @@
 from setuptools import setup
 
 setup(
-    name='realex-client',
+    name='realexpayments',
     version='0.8.0',
     packages=['realexpayments'],
-    url='https://github.com/viniciuschiele/realex-client',
+    url='https://github.com/viniciuschiele/realex-sdk',
     license='MIT',
     author='Vinicius Chiele',
     author_email='vinicius.chiele@gmail.com',
-    description='Python interface to Realex Payments',
+    description='Realex Payments SDK for Python',
     keywords=['realex', 'payments', 'api', 'client'],
     install_requires=['requests'],
     classifiers=[
