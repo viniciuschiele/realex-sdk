@@ -109,40 +109,11 @@ class HttpUtils(object):
             raise RealexError('Exception communicating with Realex.', e)
 
 
-class ResponseUtils(object):
+class RequestUtils(object):
     """
-    Utils class offering methods which act on the Realex response.
+    Utils class offering methods which act on the Realex request.
     """
 
-    # Realex error result codes in the range 3xx to 5xx will not return a full response message.
-    # Instead a short response will be returned with only the result code and message populated.
-    RESULT_CODE_PREFIX_ERROR_RESPONSE_START = 3
-
-    @staticmethod
-    def is_basic_response(result):
-        """
-        Realex responses can be basic or full. A basic response indicates the request could not
-        be processed. In this case a {@link RealexServerException} will be thrown by the SDK containing the
-        result code and message from the response.
-
-        A full response indicates the request could be processed and the response object will return fully populated.
-
-        Please note, full responses may still contain errors e.g. Bank errors (1xx). The result code should be
-        checked for success. For example a full response with a result code of 101 will not throw an exception and will return
-        a fully populated response object.
-
-        :param str result: The result form the response.
-        :return bool: `True` if it is a basic response otherwise `False`.
-        """
-        try:
-            initial_number = int(result[0:1])
-            return initial_number >= ResponseUtils.RESULT_CODE_PREFIX_ERROR_RESPONSE_START
-        except Exception as e:
-            logger.exception('Error parsing result %s', result)
-            raise RealexError('Error parsing result.', e)
-
-
-class PaymentUtils(object):
     @staticmethod
     def format_amount(amount):
         """
@@ -203,3 +174,36 @@ class PaymentUtils(object):
         :return: `True` if the card type supports 3D Secure.
         """
         return card_type != 'AMEX'
+
+
+class ResponseUtils(object):
+    """
+    Utils class offering methods which act on the Realex response.
+    """
+
+    # Realex error result codes in the range 3xx to 5xx will not return a full response message.
+    # Instead a short response will be returned with only the result code and message populated.
+    RESULT_CODE_PREFIX_ERROR_RESPONSE_START = 3
+
+    @staticmethod
+    def is_basic_response(result):
+        """
+        Realex responses can be basic or full. A basic response indicates the request could not
+        be processed. In this case a {@link RealexServerException} will be thrown by the SDK containing the
+        result code and message from the response.
+
+        A full response indicates the request could be processed and the response object will return fully populated.
+
+        Please note, full responses may still contain errors e.g. Bank errors (1xx). The result code should be
+        checked for success. For example a full response with a result code of 101 will not throw an exception and will return
+        a fully populated response object.
+
+        :param str result: The result form the response.
+        :return bool: `True` if it is a basic response otherwise `False`.
+        """
+        try:
+            initial_number = int(result[0:1])
+            return initial_number >= ResponseUtils.RESULT_CODE_PREFIX_ERROR_RESPONSE_START
+        except Exception as e:
+            logger.exception('Error parsing result %s', result)
+            raise RealexError('Error parsing result.', e)
