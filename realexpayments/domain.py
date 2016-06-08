@@ -24,10 +24,16 @@ class Address(object):
         Return an XML element of the current state of the class.
         :return Element: A XML element.
         """
-        element = Element('address', type=self.type)
+        element = Element('address')
 
-        SubElement(element, 'code').text = self.code
-        SubElement(element, 'country').text = self.country
+        if self.type is not None:
+            element.set('type', self.type)
+
+        if self.code is not None:
+            SubElement(element, 'code').text = self.code
+
+        if self.country is not None:
+            SubElement(element, 'country').text = self.country
 
         return element
 
@@ -59,6 +65,10 @@ class Amount(object):
         :return Element: A XML element.
         """
         element = Element('amount', currency=self.currency)
+
+        if self.currency is not None:
+            element.set('currency', self.currency)
+
         element.text = self.amount
         return element
 
@@ -80,7 +90,12 @@ class AutoSettle(object):
         Return an XML element of the current state of the class.
         :return Element: A XML element.
         """
-        return Element('autosettle', flag=self.flag)
+        element = Element('autosettle')
+
+        if self.flag is not None:
+            element.set('flag', self.flag)
+
+        return element
 
 
 class AutoSettleFlag(object):
@@ -119,14 +134,25 @@ class Card(object):
         """
         element = Element('card')
 
-        SubElement(element, 'type').text = self.type
-        SubElement(element, 'number').text = self.number
-        SubElement(element, 'expdate').text = self.expiry_date
-        SubElement(element, 'chname').text = self.card_holder_name
-        SubElement(element, 'issueno').text = str(self.issue_number)
+        if self.type is not None:
+            SubElement(element, 'type').text = self.type
+
+        if self.number is not None:
+            SubElement(element, 'number').text = self.number
+
+        if self.expiry_date is not None:
+            SubElement(element, 'expdate').text = self.expiry_date
+
+        if self.card_holder_name is not None:
+            SubElement(element, 'chname').text = self.card_holder_name
+
+        if self.issue_number is not None:
+            SubElement(element, 'issueno').text = self.issue_number
 
         if self.cvn:
             element.append(self.cvn.to_xml_element())
+
+        return element
 
 
 class CardType(object):
@@ -161,8 +187,11 @@ class Cvn(object):
         """
         element = Element('cvn')
 
-        SubElement(element, 'number').text = self.number
-        SubElement(element, 'presind').text = self.presence_indicator
+        if self.number is not None:
+            SubElement(element, 'number').text = self.number
+
+        if self.presence_indicator is not None:
+            SubElement(element, 'presind').text = self.presence_indicator
 
         return element
 
@@ -246,9 +275,14 @@ class Mpi(object):
         """
         element = Element('mpi')
 
-        SubElement(element, 'cavv').text = self.cavv
-        SubElement(element, 'xid').text = self.xid
-        SubElement(element, 'eci').text = self.eci
+        if self.cavv is not None:
+            SubElement(element, 'cavv').text = self.cavv
+
+        if self.xid is not None:
+            SubElement(element, 'xid').text = self.xid
+
+        if self.eci is not None:
+            SubElement(element, 'eci').text = self.eci
 
         return element
 
@@ -269,7 +303,11 @@ class Comment(object):
         Return an XML element of the current state of the class.
         :return Element: A XML element.
         """
-        element = Element('comment', id=str(self.id))
+        element = Element('comment')
+
+        if self.id is not None:
+            element.set('id', str(self.id))
+
         element.text = self.comment
         return element
 
@@ -294,7 +332,18 @@ class Recurring(object):
         Return an XML element of the current state of the class.
         :return Element: A XML element.
         """
-        return Element('recurring', type=self.type, sequence=self.sequence, flag=self.flag)
+        element = Element('recurring')
+
+        if self.type is not None:
+            element.set('type', self.type)
+
+        if self.sequence is not None:
+            element.set('sequence', self.sequence)
+
+        if self.flag is not None:
+            element.set('flag', self.flag)
+
+        return element
 
 
 class RecurringType(object):
@@ -358,10 +407,17 @@ class TssInfo(object):
         """
         element = Element('tssinfo')
 
-        SubElement(element, 'custnum').text = self.customer_number
-        SubElement(element, 'prodid').text = self.product_id
-        SubElement(element, 'varref').text = self.variable_reference
-        SubElement(element, 'custipaddress').text = self.customer_ip_address
+        if self.customer_number is not None:
+            SubElement(element, 'custnum').text = self.customer_number
+
+        if self.product_id is not None:
+            SubElement(element, 'prodid').text = self.product_id
+
+        if self.variable_reference is not None:
+            SubElement(element, 'varref').text = self.variable_reference
+
+        if self.customer_ip_address is not None:
+            SubElement(element, 'custipaddress').text = self.customer_ip_address
 
         if self.addresses:
             for address in self.addresses:
@@ -436,14 +492,14 @@ class Request(object):
     """
     def generate_defaults(self, secret):
         """
-        Generates default values for fields such as hash, timestamp and order ID.
+        Generate default values for fields such as hash, timestamp and order ID.
         :param str secret:
         """
         raise NotImplementedError()
 
     def response_from_xml(self, xml):
         """
-        Returns a concrete implementation of the response class from an XML source.
+        Return a concrete implementation of the response class from an XML source.
         :param str xml: The XML to be parsed.
         :return:
         """
@@ -451,7 +507,7 @@ class Request(object):
 
     def to_xml(self):
         """
-        Method returns an XML representation of the interface implementation.
+        Return an XML representation of the interface implementation.
         :return str: The XML representation.
         """
         raise NotImplementedError()
@@ -550,7 +606,7 @@ class PaymentRequest(Request):
 
     def generate_defaults(self, secret):
         """
-        Generates default values for fields such as hash, timestamp and order ID.
+        Generate default values for fields such as hash, timestamp and order ID.
         :param str secret:
         """
         if self.timestamp is None:
@@ -593,7 +649,7 @@ class PaymentRequest(Request):
 
     def response_from_xml(self, xml):
         """
-        Returns a concrete implementation of the response class from an XML source.
+        Return a concrete implementation of the response class from an XML source.
         :param str xml: The xml to be parsed.
         :return PaymentResponse: A instance of `PaymentResponse`.
         """
@@ -601,7 +657,7 @@ class PaymentRequest(Request):
 
     def to_xml(self):
         """
-        Returns an XML representation of the interface implementation.
+        Return an XML representation of the interface implementation.
         :return str: The XML representation.
         """
         root = Element('request', timestamp=self.timestamp, type=self.type)
@@ -910,7 +966,7 @@ class ThreeDSecureRequest(Request):
 
     def generate_defaults(self, secret):
         """
-        Generates default values for fields such as hash, timestamp and order ID.
+        Generate default values for fields such as hash, timestamp and order ID.
         :param str secret:
         """
         if self.timestamp is None:
@@ -947,7 +1003,7 @@ class ThreeDSecureRequest(Request):
 
     def response_from_xml(self, xml):
         """
-        Returns a concrete implementation of the response class from an XML source.
+        Return a concrete implementation of the response class from an XML source.
         :param str xml: The xml to be parsed.
         :return ThreeDSecureResponse: A instance of `ThreeDSecureResponse`.
         """
@@ -955,7 +1011,7 @@ class ThreeDSecureRequest(Request):
 
     def to_xml(self):
         """
-        Returns an XML representation of the interface implementation.
+        Return an XML representation of the interface implementation.
         :return str: The XML representation.
         """
         root = Element('request', timestamp=self.timestamp, type=self.type)
@@ -1037,7 +1093,7 @@ class ThreeDSecureResponse(Response):
     @staticmethod
     def from_xml(xml):
         """
-        Unmarshals the passed XML to a `ThreeDSecureResponse` object.
+        Unmarshal the passed XML to a `ThreeDSecureResponse` object.
         :param xml: The XML to be be parsed.
         :return: A instance of `ThreeDSecureResponse`
         """
@@ -1112,8 +1168,8 @@ class ThreeDSecureResponse(Response):
 
     def is_hash_valid(self, secret):
         """
-        Validates the response from realex. Raises an exception if
-        validation fails.
+        Validate the response from realex. Raises an exception
+        if validation fails.
         :param str secret:
         """
         # for any null values and set them to empty string for hashing
