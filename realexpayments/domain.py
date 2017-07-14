@@ -594,7 +594,7 @@ class PaymentRequest(Request):
         self.auto_settle = kwargs.get('auto_settle')
         self.comments = kwargs.get('comments')
         self.payments_reference = kwargs.get('payments_reference')
-        self.auth_code = kwargs.get('authcode')
+        self.auth_code = kwargs.get('auth_code')
         self.mobile = kwargs.get('mobile')
         self.token = kwargs.get('token')
         self.mpi = kwargs.get('mpi')
@@ -686,7 +686,7 @@ class PaymentRequest(Request):
                 element.append(comment.to_xml_element())
 
         if self.auth_code is not None:
-            SubElement(root, 'auth_code').text = self.auth_code
+            SubElement(root, 'authcode').text = self.auth_code
 
         if self.payments_reference is not None:
             SubElement(root, 'pasref').text = self.payments_reference
