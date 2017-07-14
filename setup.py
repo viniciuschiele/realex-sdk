@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='realexpayments',
-    version='1.0.0',
+    version='1.0.1',
     packages=['realexpayments'],
     url='https://github.com/viniciuschiele/realex-sdk',
     license='MIT',
