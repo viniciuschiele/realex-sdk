@@ -959,7 +959,7 @@ class ThreeDSecureRequest(Request):
         self.account = kwargs.get('account')
         self.order_id = kwargs.get('order_id')
         self.amount = kwargs.get('amount')
-        self.card = kwargs.get('car')
+        self.card = kwargs.get('card')
         self.pares = kwargs.get('pares')
         self.comments = kwargs.get('comments')
         self.sha1_hash = kwargs.get('sha1_hash')
