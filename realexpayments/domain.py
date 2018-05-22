@@ -22,7 +22,7 @@ class Address(object):
     def to_xml_element(self):
         """
         Return an XML element of the current state of the class.
-        :return Element: A XML element.
+        :return Element: An XML element.
         """
         element = Element('address')
 
@@ -47,6 +47,33 @@ class AddressType(object):
     billing = 'billing'
 
 
+class Country(object):
+    """
+    Domain object representing Country information to be passed to Realex.
+
+    :param str code: The country code. The list of country codes is available in the realauth developers guide.
+    :param str name: The country name.
+    """
+    def __init__(self, code=None, name=None):
+        self.code = code
+        self.name = name
+
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: An XML element.
+        """
+        element = Element('country')
+
+        if self.code is not None:
+            element.set('code', self.code)
+
+        if self.name is not None:
+            element.text = self.name
+
+        return element
+
+
 class Amount(object):
     """
     Class representing the Amount in a Realex request.
@@ -62,7 +89,7 @@ class Amount(object):
     def to_xml_element(self):
         """
         Return an XML element of the current state of the class.
-        :return Element: A XML element.
+        :return Element: An XML element.
         """
         element = Element('amount', currency=self.currency)
 
@@ -88,7 +115,7 @@ class AutoSettle(object):
     def to_xml_element(self):
         """
         Return an XML element of the current state of the class.
-        :return Element: A XML element.
+        :return Element: An XML element.
         """
         element = Element('autosettle')
 
@@ -117,22 +144,35 @@ class Card(object):
     :param str expiry_date: The card expiry date, in the format MMYY, which must be a date in the future.
     :param int issue_number: The card issue number.
     :param Cvn cvn: The card verification number.
+    :param str ref: The reference for this card (Card Storage).
+        This must be unique within the Payer record if you are adding multiple
+        cards, but it does not need to be unique in relation to other Payers.
+    :param str payer_ref: The payer ref for this customer (Card Storage).
     """
     def __init__(self, type=None, number=None, card_holder_name=None,
-                 expiry_date=None, issue_number=None, cvn=None):
+                 expiry_date=None, issue_number=None, cvn=None,
+                 ref=None, payer_ref=None):
         self.type = type
         self.number = number
         self.card_holder_name = card_holder_name
         self.expiry_date = expiry_date
         self.issue_number = issue_number
         self.cvn = cvn
+        self.ref = ref
+        self.payer_ref = payer_ref
 
     def to_xml_element(self):
         """
         Return an XML element of the current state of the class.
-        :return Element: A XML element.
+        :return Element: An XML element.
         """
         element = Element('card')
+
+        if self.ref is not None:
+            SubElement(element, 'ref').text = self.ref
+
+        if self.payer_ref is not None:
+            SubElement(element, 'payerref').text = self.payer_ref
 
         if self.type is not None:
             SubElement(element, 'type').text = self.type
@@ -149,7 +189,7 @@ class Card(object):
         if self.issue_number is not None:
             SubElement(element, 'issueno').text = self.issue_number
 
-        if self.cvn:
+        if self.cvn is not None:
             element.append(self.cvn.to_xml_element())
 
         return element
@@ -183,7 +223,7 @@ class Cvn(object):
     def to_xml_element(self):
         """
         Return an XML element of the current state of the class.
-        :return Element: A XML element.
+        :return Element: An XML element.
         """
         element = Element('cvn')
 
@@ -192,6 +232,32 @@ class Cvn(object):
 
         if self.presence_indicator is not None:
             SubElement(element, 'presind').text = self.presence_indicator
+
+        return element
+
+
+class CvnNumber(object):
+    """
+    Domain object representing PaymentData CVN number information to be passed to
+    Realex Card Storage for Receipt-in transactions.
+    Contains the CVN number for the stored card.
+
+    :param str number: A three-digit number on the reverse of the card.
+        It is called the CVC for VISA and the CVV2 for MasterCard.
+        For an AMEX card, it is a four digit number.
+    """
+    def __init__(self, number=None):
+        self.number = number
+
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: An XML element.
+        """
+        element = Element('cvn')
+
+        if self.number is not None:
+            SubElement(element, 'number').text = self.number
 
         return element
 
@@ -271,7 +337,7 @@ class Mpi(object):
     def to_xml_element(self):
         """
         Return an XML element of the current state of the class.
-        :return Element: A XML element.
+        :return Element: An XML element.
         """
         element = Element('mpi')
 
@@ -301,7 +367,7 @@ class Comment(object):
     def to_xml_element(self):
         """
         Return an XML element of the current state of the class.
-        :return Element: A XML element.
+        :return Element: An XML element.
         """
         element = Element('comment')
 
@@ -309,6 +375,165 @@ class Comment(object):
             element.set('id', str(self.id))
 
         element.text = self.comment
+        return element
+
+
+class Payer(object):
+    """
+    Domain object representing Payer information to be passed to Realex.
+
+    :param str type: The payer type can be used to identify the category of the Payer.
+    :param str ref: The payer ref is the reference for this customer. It must be unique.
+    :param str title: The title of the payer.
+    :param str first_name: The first name of the payer.
+    :param str surname: The surname of the payer.
+    :param str company: The company name.
+    :param PayerAddress address: The object containing the payer address.
+    :param PhoneNumbers phone_numbers: The object containing the payer phone numbers.
+    :param str email: The email of the payer.
+    :param list[Comment] comments: The list of comment objects to be passed in request.
+            Optionally, up to two comments can be associated with any payer.
+    """
+    def __init__(self, type=None, ref=None, title=None, first_name=None, surname=None, company=None,
+                 address=None, phone_numbers=None, email=None, comments=None):
+        self.type = type
+        self.ref = ref
+        self.title = title
+        self.first_name = first_name
+        self.surname = surname
+        self.company = company
+        self.address = address
+        self.phone_numbers = phone_numbers
+        self.email = email
+        self.comments = comments
+
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: An XML element.
+        """
+        element = Element('payer')
+
+        if self.type is not None:
+            element.set('type', self.type)
+
+        if self.ref is not None:
+            element.set('ref', self.ref)
+
+        if self.title is not None:
+            SubElement(element, 'title').text = self.title
+
+        if self.first_name is not None:
+            SubElement(element, 'firstname').text = self.first_name
+
+        if self.surname is not None:
+            SubElement(element, 'surname').text = self.surname
+
+        if self.company is not None:
+            SubElement(element, 'company').text = self.company
+
+        if self.address is not None:
+            element.append(self.address.to_xml_element())
+
+        if self.phone_numbers is not None:
+            element.append(self.phone_numbers.to_xml_element())
+
+        if self.email is not None:
+            SubElement(element, 'email').text = self.email
+
+        if self.comments:
+            element = SubElement(element, 'comments')
+            for comment in self.comments:
+                element.append(comment.to_xml_element())
+
+        return element
+
+
+class PayerAddress(object):
+    """
+    Domain object representing Payer address to be passed to Realex.
+    :params str line1: The address line 1.
+    :params str line2: The address line 2.
+    :params str line3: The address line 3.
+    :params str city: The address city.
+    :params str county: The address country.
+    :params str postcode: The address postcode.
+    :params Country country: The address country.
+    """
+    def __init__(self, line1=None, line2=None, line3=None, city=None, county=None, postcode=None, country=None):
+        self.line1 = line1
+        self.line2 = line2
+        self.line3 = line3
+        self.city = city
+        self.county = county
+        self.postcode = postcode
+        self.country = country
+
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: An XML element.
+        """
+        element = Element('payeraddress')
+
+        if self.line1 is not None:
+            SubElement(element, 'line1').text = self.line1
+
+        if self.line2 is not None:
+            SubElement(element, 'line2').text = self.line2
+
+        if self.line3 is not None:
+            SubElement(element, 'line3').text = self.line3
+
+        if self.city is not None:
+            SubElement(element, 'city').text = self.city
+
+        if self.county is not None:
+            SubElement(element, 'county').text = self.county
+
+        if self.postcode is not None:
+            SubElement(element, 'postcode').text = self.postcode
+
+        if self.country is not None:
+            element.append(self.country.to_xml_element())
+
+        return element
+
+
+class PhoneNumbers(object):
+    """
+    Domain object representing Payer phone numbers information to be passed to Realex.
+
+    :param str home_phone_number: The home phone number.
+    :param str work_phone_number: The work phone number.
+    :param str fax_phone_number: The fax phone number.
+    :param str mobile_phone_number: The mobile phone number.
+    """
+    def __init__(self, home_phone_number=None, work_phone_number=None, fax_phone_number=None, mobile_phone_number=None):
+        self.home_phone_number = home_phone_number
+        self.work_phone_number = work_phone_number
+        self.fax_phone_number = fax_phone_number
+        self.mobile_phone_number = mobile_phone_number
+
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: An XML element.
+        """
+        element = Element('phonenumbers')
+
+        if self.home_phone_number is not None:
+            SubElement(element, 'home').text = self.home_phone_number
+
+        if self.work_phone_number is not None:
+            SubElement(element, 'work').text = self.work_phone_number
+
+        if self.fax_phone_number is not None:
+            SubElement(element, 'fax').text = self.fax_phone_number
+
+        if self.mobile_phone_number is not None:
+            SubElement(element, 'mobile').text = self.mobile_phone_number
+
         return element
 
 
@@ -330,7 +555,7 @@ class Recurring(object):
     def to_xml_element(self):
         """
         Return an XML element of the current state of the class.
-        :return Element: A XML element.
+        :return Element: An XML element.
         """
         element = Element('recurring')
 
@@ -403,7 +628,7 @@ class TssInfo(object):
     def to_xml_element(self):
         """
         Return an XML element of the current state of the class.
-        :return Element: A XML element.
+        :return Element: An XML element.
         """
         element = Element('tssinfo')
 
@@ -540,6 +765,16 @@ class PaymentType(object):
     credit = 'credit'
     hold = 'hold'
     release = 'release'
+    receipt_in = 'receipt-in'
+    payment_out = 'payment-out'
+    payer_new = 'payer-new'
+    payer_edit = 'payer-edit'
+    card_new = 'card-new'
+    card_update = 'card-update-card'
+    card_cancel = 'card-cancel-card'
+    dcc_rate_lookup = 'dccrate'
+    receipt_in_otb = 'receipt-in-otb'
+    stored_card_dcc_rate = 'realvault-dccrate'
 
 
 class PaymentRequest(Request):
@@ -571,6 +806,10 @@ class PaymentRequest(Request):
     :param str token: The mobile auth payment token to be sent in place of payment data.
     :param Mpi mpi: Contains 3D Secure/Secure Code information if this transaction has used
         a 3D Secure/Secure Code system, either Realex's RealMPI or a third party's.
+    :param Payer payer: The payer information to be used on Card Storage transactions.
+    :param str payer_ref: The payer ref for this customer.
+    :param PaymentData payment_data: The payment information to be used on Receipt-in transactions.
+    :param str payment_method: The payment reference.
     :param str fraud_filter: Fraud filter flag
     :param Recurring recurring: If you are configured for recurring/continuous authority transactions,
         you must set the recurring values.
@@ -598,6 +837,10 @@ class PaymentRequest(Request):
         self.mobile = kwargs.get('mobile')
         self.token = kwargs.get('token')
         self.mpi = kwargs.get('mpi')
+        self.payer = kwargs.get('payer')
+        self.payer_ref = kwargs.get('payer_ref')
+        self.payment_data = kwargs.get('payment_data')
+        self.payment_method = kwargs.get('payment_method')
         self.fraud_filter = kwargs.get('fraud_filter')
         self.recurring = kwargs.get('recurring')
         self.tss_info = kwargs.get('tss_info')
@@ -626,22 +869,61 @@ class PaymentRequest(Request):
         timestamp = self.timestamp or ''
         merchant_id = self.merchant_id or ''
         order_id = self.order_id or ''
-        amount = ''
-        currency = ''
-        card_number = ''
         token = self.token or ''
+        payer_ref = self.payer_ref
 
-        if self.amount:
-            amount = self.amount.amount or ''
-            currency = self.amount.currency or ''
+        payer_new_ref = ''
+        if self.payer and self.payer.ref:
+            payer_new_ref = self.payer.ref
 
-        if self.card:
-            card_number = self.card.number or ''
+        amount = ''
+        if self.amount and self.amount.amount:
+            amount = self.amount.amount
+
+        currency = ''
+        if self.currency and self.amount.currency:
+            currency = self.amount.currency
+
+        card_ref = ''
+        if self.card and self.card.ref:
+            card_ref = self.card.ref
+
+        card_number = ''
+        if self.card and self.card.number:
+            card_number = self.card.number
+
+        card_payer_ref = ''
+        if self.card and self.card.payer_ref:
+            card_payer_ref = self.card.payer_ref
+
+        card_holder_name = ''
+        if self.card and self.card.card_holder_name:
+            card_holder_name = self.card.card_holder_name
+
+        card_expiry_date = ''
+        if self.card and self.card.expiry_date:
+            card_expiry_date = self.card.expiry_date
 
         if self.type == PaymentType.auth_mobile:
-            to_hash = '.'.join((timestamp, merchant_id, order_id, '.', token))
+            to_hash = '.'.join((timestamp, merchant_id, order_id, amount, currency, token))
         elif self.type == PaymentType.otb:
             to_hash = '.'.join((timestamp, merchant_id, order_id, card_number))
+        elif self.type == PaymentType.receipt_in:
+            to_hash = '.'.join((timestamp, merchant_id, order_id, amount, currency, payer_ref))
+        elif self.type == PaymentType.payer_new:
+            to_hash = '.'.join((timestamp, merchant_id, order_id, amount, currency, payer_new_ref))
+        elif self.type == PaymentType.card_new:
+            to_hash = '.'.join(
+                (timestamp, merchant_id, order_id, amount, currency, card_payer_ref, card_holder_name, card_number))
+        elif self.type == PaymentType.card_update:
+            to_hash = '.'.join(
+                (timestamp, merchant_id, card_payer_ref, card_ref, card_expiry_date, card_number))
+        elif self.type == PaymentType.card_cancel:
+            to_hash = '.'.join((timestamp, merchant_id, card_payer_ref, card_ref))
+        elif self.type == PaymentType.receipt_in_otb:
+            to_hash = '.'.join((timestamp, merchant_id, order_id, payer_ref))
+        elif self.type == PaymentType.stored_card_dcc_rate:
+            to_hash = '.'.join((timestamp, merchant_id, order_id, amount, currency, payer_ref))
         else:
             to_hash = '.'.join((timestamp, merchant_id, order_id, amount, currency, card_number))
 
@@ -699,6 +981,18 @@ class PaymentRequest(Request):
 
         if self.mpi is not None:
             root.append(self.mpi.to_xml_element())
+
+        if self.payer is not None:
+            root.append(self.payer.to_xml_element())
+
+        if self.payer_ref is not None:
+            SubElement(root, 'payerref').text = self.payer_ref
+
+        if self.payment_data is not None:
+            root.append(self.payment_data.to_xml_element())
+
+        if self.payment_method is not None:
+            SubElement(root, 'paymentmethod').text = self.payment_method
 
         if self.fraud_filter is not None:
             SubElement(root, 'fraudfilter').text = self.fraud_filter
@@ -873,6 +1167,30 @@ class PaymentResponse(Response):
         return expected_hash == self.sha1_hash
 
 
+class PaymentData(object):
+    """
+    Domain object representing PaymentData information to be passed to Realex Card Storage
+    for Receipt-in transactions.
+    Payment data contains the CVN number for the stored card.
+
+    :param CvnNumber cvn_number: A container for the CVN number.
+    """
+    def __init__(self, cvn_number=None):
+        self.cvn_number = cvn_number
+
+    def to_xml_element(self):
+        """
+        Return an XML element of the current state of the class.
+        :return Element: An XML element.
+        """
+        element = Element('paymentdata')
+
+        if self.cvn_number is not None:
+            element.append(self.cvn_number.to_xml_element())
+
+        return element
+
+
 class ThreeDSecure(object):
     """
     Domain object representing 3D Secure (realmpi) information passed back from Realex.
@@ -929,6 +1247,7 @@ class ThreeDSecureType(object):
     """
     verify_enrolled = '3ds-verifyenrolled'
     verify_sig = '3ds-verifysig'
+    verify_stored_card_enrolled = 'realvault-3ds-verifyenrolled'
 
 
 class ThreeDSecureRequest(Request):
