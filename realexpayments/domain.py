@@ -1265,9 +1265,11 @@ class ThreeDSecureRequest(Request):
     :param Amount amount: The `Amount` object containing the amount value and the currency type.
     :param Card card: The `Card` object containing the card details to be passed in request.
     :param str pares: The pre-encoded PaRes that you obtain from the Issuer's ACS.
-    :param comments: List of `Comment` objects to be passed in request.
+    :param list comments: List of `Comment` objects to be passed in request.
         Optionally, up to two comments can be associated with any transaction.
-    :type: list of Comment
+    :param str payer_ref: The payer ref for this customer.
+    :param PaymentData payment_data: The payment information to be used on Receipt-in transactions.
+    :param str payment_method: The payment reference.
     :param str sha1_hash: Hash constructed from the time stamp, merchand ID, order ID, amount, currency,
         card number and secret values.
     """
@@ -1281,6 +1283,9 @@ class ThreeDSecureRequest(Request):
         self.card = kwargs.get('card')
         self.pares = kwargs.get('pares')
         self.comments = kwargs.get('comments')
+        self.payer_ref = kwargs.get('payer_ref')
+        self.payment_data = kwargs.get('payment_data')
+        self.payment_method = kwargs.get('payment_method')
         self.sha1_hash = kwargs.get('sha1_hash')
 
     def generate_defaults(self, secret):
@@ -1308,6 +1313,7 @@ class ThreeDSecureRequest(Request):
         amount = ''
         currency = ''
         card_number = ''
+        payer_ref = self.payer_ref or ''
 
         if self.amount:
             amount = self.amount.amount or ''
@@ -1316,7 +1322,10 @@ class ThreeDSecureRequest(Request):
         if self.card:
             card_number = self.card.number or ''
 
-        to_hash = '.'.join((timestamp, merchant_id, order_id, amount, currency, card_number))
+        if self.type == ThreeDSecureType.verify_stored_card_enrolled:
+            to_hash = '.'.join((timestamp, merchant_id, order_id, amount, currency, payer_ref))
+        else:
+            to_hash = '.'.join((timestamp, merchant_id, order_id, amount, currency, card_number))
 
         self.sha1_hash = GenerationUtils.generate_hash(to_hash, secret)
 
@@ -1357,6 +1366,15 @@ class ThreeDSecureRequest(Request):
             element = SubElement(root, 'comments')
             for comment in self.comments:
                 element.append(comment.to_xml_element())
+
+        if self.payer_ref is not None:
+            SubElement(root, 'payerref').text = self.payer_ref
+
+        if self.payment_data is not None:
+            root.append(self.payment_data.to_xml_element())
+
+        if self.payment_method is not None:
+            SubElement(root, 'paymentmethod').text = self.payment_method
 
         if self.sha1_hash is not None:
             SubElement(root, 'sha1hash').text = self.sha1_hash
